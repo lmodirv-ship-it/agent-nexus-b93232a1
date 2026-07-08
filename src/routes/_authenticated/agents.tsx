@@ -217,6 +217,7 @@ function AgentsPage() {
               <th className="py-3 px-3 font-semibold">التكرار</th>
               <th className="py-3 px-3 font-semibold">الوصف</th>
               <th className="py-3 px-3 font-semibold">الحالة</th>
+              <th className="py-3 px-3 font-semibold text-center">المواقع</th>
               <th className="py-3 px-3 font-semibold text-center">إجراء</th>
             </tr>
           </thead>
