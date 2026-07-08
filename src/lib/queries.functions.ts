@@ -173,7 +173,7 @@ export const listSites = createServerFn({ method: "GET" })
 
 export const upsertSite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id?: string; domain: string; status?: string; client_id?: string | null; icon_color?: string }) => d)
+  .inputValidator((d: { id?: string; domain: string; status?: string; client_id?: string | null; icon_color?: string; email?: string | null }) => d)
   .handler(async ({ data, context }) => {
     const res = data.id
       ? await context.supabase.from("sites").update(data).eq("id", data.id).select().single()
