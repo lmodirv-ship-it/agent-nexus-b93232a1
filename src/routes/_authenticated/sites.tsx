@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useSuspenseQuery, queryOptions, useQueryClient } from "@tanstack/react-query";
-import { Globe, Plus, Search, ExternalLink, Trash2, Users, HardDrive } from "lucide-react";
+import { Globe, Plus, Search, ExternalLink, Trash2, Users, HardDrive, Mail } from "lucide-react";
 import { PageHeader, NeonButton, StatusPill } from "@/components/dashboard/PageHeader";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
-import { listSites, deleteSite } from "@/lib/queries.functions";
+import { listSites, deleteSite, upsertSite } from "@/lib/queries.functions";
 
 const sitesQ = queryOptions({ queryKey: ["sites"], queryFn: () => listSites() });
 
@@ -48,6 +48,13 @@ function SitesPage() {
     qc.invalidateQueries({ queryKey: ["sites"] });
   };
 
+  const handleEmail = async (s: any) => {
+    const email = prompt("بريد الموقع (يشغّله ويرسل ويستقبل نيابةً عنه):", s.email ?? "");
+    if (email === null) return;
+    await upsertSite({ data: { id: s.id, domain: s.domain, email: email.trim() || null } as any });
+    qc.invalidateQueries({ queryKey: ["sites"] });
+  };
+
   const columns: Column<any>[] = [
     { key: "site", header: "الموقع", cell: (s) => {
       const hex = s.icon_color ?? "#22d3ee";
@@ -73,6 +80,12 @@ function SitesPage() {
     { key: "db", header: "DB", cell: (s) => <span className="text-slate-300 text-xs">{Number(s.db_size_gb ?? 0)} GB</span> },
     { key: "storage", header: "التخزين", cell: (s) => (
       <div className="flex items-center gap-1.5 text-slate-200"><HardDrive className="w-3.5 h-3.5 text-violet-neon" />{Number(s.storage_gb ?? 0)} GB</div>
+    )},
+    { key: "email", header: "بريد التشغيل", cell: (s) => (
+      <button onClick={() => handleEmail(s)} className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-lg border border-white/10 hover:border-cyan-neon/50 transition text-slate-300 hover:text-cyan-neon" title="ربط بريد للموقع">
+        <Mail className="w-3.5 h-3.5" />
+        <span className="max-w-[160px] truncate">{s.email ?? "— ربط بريد —"}</span>
+      </button>
     )},
     { key: "act", header: "", cell: (s) => (
       <button onClick={() => handleDelete(s.id)} className="w-8 h-8 rounded-lg grid place-items-center border border-white/10 hover:border-rose-neon/50 text-slate-300 hover:text-rose-neon transition" title="حذف">

@@ -58,8 +58,46 @@ export const getActivity = createServerFn({ method: "GET" })
 export const getAgentsCatalog = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data } = await context.supabase.from("agents_catalog").select("*").order("name_ar");
+    const { data } = await context.supabase
+      .from("agents_catalog")
+      .select("*")
+      .order("role")
+      .order("slug");
     return data ?? [];
+  });
+
+export const setAgentActive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; is_active: boolean }) => d)
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("agents_catalog")
+      .update({ is_active: data.is_active })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    await context.supabase.from("audit_log").insert({
+      actor_id: context.userId,
+      action: data.is_active ? "agent.activate" : "agent.deactivate",
+      target: `agents_catalog/${data.id}`,
+    });
+    return { ok: true };
+  });
+
+export const setAllAgentsActive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { is_active: boolean; role?: string }) => d)
+  .handler(async ({ data, context }) => {
+    const query = context.supabase.from("agents_catalog").update({ is_active: data.is_active });
+    const q = data.role ? query.eq("role", data.role) : query.not("id", "is", null);
+    const { error } = await q;
+    if (error) throw new Error(error.message);
+    await context.supabase.from("audit_log").insert({
+      actor_id: context.userId,
+      action: data.is_active ? "agent.activate_all" : "agent.deactivate_all",
+      target: "agents_catalog",
+      details: { role: data.role ?? "all" },
+    });
+    return { ok: true };
   });
 
 export const getAgentSessions = createServerFn({ method: "GET" })
@@ -135,7 +173,7 @@ export const listSites = createServerFn({ method: "GET" })
 
 export const upsertSite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { id?: string; domain: string; status?: string; client_id?: string | null; icon_color?: string }) => d)
+  .inputValidator((d: { id?: string; domain: string; status?: string; client_id?: string | null; icon_color?: string; email?: string | null }) => d)
   .handler(async ({ data, context }) => {
     const res = data.id
       ? await context.supabase.from("sites").update(data).eq("id", data.id).select().single()

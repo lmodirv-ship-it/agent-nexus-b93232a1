@@ -134,6 +134,7 @@ export type Database = {
           emoji: string | null
           frequency: string | null
           id: string
+          is_active: boolean
           name_ar: string
           role: string
           slug: string
@@ -143,6 +144,7 @@ export type Database = {
           emoji?: string | null
           frequency?: string | null
           id?: string
+          is_active?: boolean
           name_ar: string
           role: string
           slug: string
@@ -152,6 +154,7 @@ export type Database = {
           emoji?: string | null
           frequency?: string | null
           id?: string
+          is_active?: boolean
           name_ar?: string
           role?: string
           slug?: string
@@ -568,6 +571,7 @@ export type Database = {
           created_at: string | null
           db_size_gb: number | null
           domain: string
+          email: string | null
           icon_color: string | null
           id: string
           status: string
@@ -580,6 +584,7 @@ export type Database = {
           created_at?: string | null
           db_size_gb?: number | null
           domain: string
+          email?: string | null
           icon_color?: string | null
           id?: string
           status?: string
@@ -592,6 +597,7 @@ export type Database = {
           created_at?: string | null
           db_size_gb?: number | null
           domain?: string
+          email?: string | null
           icon_color?: string | null
           id?: string
           status?: string
