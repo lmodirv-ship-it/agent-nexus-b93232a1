@@ -1,22 +1,13 @@
-import { useEffect, useState } from "react";
+import { useQuery, queryOptions } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Globe } from "lucide-react";
-import { MOCK_SITES } from "@/lib/mock-data";
+import { listSites } from "@/lib/queries.functions";
+
+const sitesQ = queryOptions({ queryKey: ["sites"], queryFn: () => listSites() });
 
 export function LiveSitesStatus() {
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setTick(t => t + 1), 2000);
-    return () => clearInterval(id);
-  }, []);
-
-  const sites = MOCK_SITES.slice(0, 8).map((s, i) => {
-    const jitter = ((tick + i) * 13) % 40;
-    return {
-      ...s,
-      response: s.status === "offline" ? 0 : 60 + jitter + (s.status === "maintenance" ? 380 : 0),
-    };
-  });
+  const { data = [] } = useQuery(sitesQ);
+  const sites = data.slice(0, 8);
 
   return (
     <div className="panel p-5">
@@ -28,38 +19,38 @@ export function LiveSitesStatus() {
         <Link to="/sites" className="text-xs text-cyan-neon hover:underline">عرض الكل ←</Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {sites.map(site => {
-          const hex = site.status === "online" ? "#34d399"
-                    : site.status === "maintenance" ? "#fbbf24"
-                    : "#fb7185";
-          const label = site.status === "online" ? "🟢 يعمل"
-                      : site.status === "maintenance" ? "⚠️ صيانة"
-                      : "🔴 معطل";
-          return (
-            <div key={site.id}
-                 className="rounded-2xl p-3 bg-black/30 border transition hover:-translate-y-0.5"
-                 style={{ borderColor: `${hex}44`, boxShadow: `0 0 18px ${hex}18` }}>
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="font-bold truncate">{site.name}</div>
-                  <div className="text-[11px] text-muted-foreground truncate">{site.domain}</div>
+      {sites.length === 0 ? (
+        <div className="text-sm text-muted-foreground text-center py-8">لا توجد مواقع بعد</div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {sites.map((site: any) => {
+            const hex = site.status === "online" ? "#34d399"
+                      : site.status === "warning" || site.status === "maintenance" ? "#fbbf24"
+                      : "#fb7185";
+            const label = site.status === "online" ? "🟢 يعمل"
+                        : site.status === "warning" || site.status === "maintenance" ? "⚠️ تحذير"
+                        : "🔴 معطل";
+            return (
+              <div key={site.id} className="rounded-2xl p-3 bg-black/30 border transition hover:-translate-y-0.5"
+                   style={{ borderColor: `${hex}44`, boxShadow: `0 0 18px ${hex}18` }}>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="font-bold truncate">{site.clients?.name ?? site.domain}</div>
+                    <div className="text-[11px] text-muted-foreground truncate">{site.domain}</div>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
+                        style={{ background: `${hex}22`, color: hex, border: `1px solid ${hex}55` }}>{label}</span>
                 </div>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
-                      style={{ background: `${hex}22`, color: hex, border: `1px solid ${hex}55` }}>
-                  {label}
-                </span>
+                <div className="mt-3 space-y-1 text-[11px]">
+                  <Row k="المستخدمون" v={(site.users_count ?? 0).toLocaleString("ar")} />
+                  <Row k="قاعدة البيانات" v={`${Number(site.db_size_gb ?? 0)} GB`} />
+                  <Row k="التخزين" v={`${Number(site.storage_gb ?? 0)} GB`} />
+                </div>
               </div>
-              <div className="mt-3 space-y-1 text-[11px]">
-                <Row k="المستخدمون" v={site.users.toLocaleString("ar")} />
-                <Row k="الاستجابة" v={`${site.response}ms`} />
-                <Row k="قاعدة البيانات" v={site.db} />
-                <Row k="النسخ" v={String(site.replicas)} />
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,92 +1,41 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { LogIn, ShieldOff, ShieldCheck, Ban } from "lucide-react";
+import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
+import { Shield, Ban } from "lucide-react";
 import { PageHeader, StatusPill } from "@/components/dashboard/PageHeader";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
-import { MOCK_ATTACKS, ATTACK_COORDS, type AttackAttempt } from "@/lib/mock-data";
+import { listAttackAttempts } from "@/lib/queries.functions";
+
+const attemptsQ = queryOptions({ queryKey: ["attacks"], queryFn: () => listAttackAttempts() });
 
 export const Route = createFileRoute("/_authenticated/security/attempts")({
-  head: () => ({ meta: [{ title: "محاولات الاختراق — SUPER ADMIN" }, { name: "description", content: "سجل محاولات الاختراق مع خريطة IPs." }] }),
+  head: () => ({ meta: [{ title: "محاولات الاختراق — SUPER ADMIN" }, { name: "description", content: "سجل محاولات الاختراق المكتشفة." }] }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(attemptsQ),
   component: AttemptsPage,
+  errorComponent: ({ error }) => <div className="panel p-6">{error.message}</div>,
+  notFoundComponent: () => <div className="panel p-6">غير موجود</div>,
 });
 
-const TYPE_LABELS: Record<AttackAttempt["type"], { label: string; hex: string }> = {
-  "brute-force": { label: "قوة عمياء", hex: "#fb7185" },
-  sqli:          { label: "حقن SQL",   hex: "#a78bfa" },
-  xss:           { label: "XSS",       hex: "#fbbf24" },
-  ddos:          { label: "DDoS",      hex: "#f472b6" },
-  scan:          { label: "مسح منافذ", hex: "#38bdf8" },
-};
-
 function AttemptsPage() {
-  const [rows, setRows] = useState<AttackAttempt[]>(MOCK_ATTACKS);
-  const [pulse, setPulse] = useState(0);
-  useEffect(() => { const id = setInterval(() => setPulse((p) => p + 1), 1500); return () => clearInterval(id); }, []);
+  const { data: rows } = useSuspenseQuery(attemptsQ);
 
-  const blockIp = (id: string) => setRows((prev) => prev.map((r) => r.id === id ? { ...r, blocked: true } : r));
-
-  const columns: Column<AttackAttempt>[] = [
-    { key: "ip", header: "IP", cell: (r) => (
-      <div className="flex items-center gap-2">
-        <span className="text-lg">{r.flag}</span>
-        <div>
-          <div className="font-mono text-white text-sm">{r.ip}</div>
-          <div className="text-[11px] text-muted-foreground">{r.country}</div>
-        </div>
-      </div>
-    )},
-    { key: "type", header: "النوع", cell: (r) => <StatusPill label={TYPE_LABELS[r.type].label} hex={TYPE_LABELS[r.type].hex} /> },
-    { key: "target", header: "الهدف", cell: (r) => <span className="text-slate-300 font-mono text-xs">{r.target}</span> },
-    { key: "time",   header: "الوقت", cell: (r) => <span className="text-muted-foreground text-xs font-mono">{r.time}</span> },
-    { key: "st",     header: "الإجراء", cell: (r) => r.blocked
-      ? <span className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: "#22d3ee" }}><ShieldCheck className="w-3.5 h-3.5" /> محظور</span>
-      : <span className="flex items-center gap-1 text-[11px] font-semibold" style={{ color: "#fb7185" }}><ShieldOff className="w-3.5 h-3.5" /> مسموح</span> },
-    { key: "act", header: "", cell: (r) => (
-      <button onClick={() => blockIp(r.id)} disabled={r.blocked}
-              className="px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition disabled:opacity-40"
-              style={{ borderColor: "#fb718555", color: "#fb7185", background: "#fb71851a" }}>
-        <Ban className="w-3 h-3 inline ml-1" /> حظر
-      </button>
-    )},
+  const columns: Column<any>[] = [
+    { key: "ip", header: "IP", cell: (r) => <span className="font-mono text-white">{r.ip}</span> },
+    { key: "country", header: "الدولة", cell: (r) => <span className="text-slate-200">{r.country ?? "—"}</span> },
+    { key: "kind", header: "النوع", cell: (r) => <span className="text-[11px] px-2 py-0.5 rounded-full font-mono" style={{ background: "#fb718522", color: "#fb7185", border: "1px solid #fb718555" }}>{r.kind ?? "—"}</span> },
+    { key: "target", header: "الهدف", cell: (r) => <span className="font-mono text-xs text-slate-300">{r.target ?? "—"}</span> },
+    { key: "when", header: "الوقت", cell: (r) => <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleString("ar-EG")}</span> },
+    { key: "st", header: "الحالة", cell: (r) => <StatusPill label={r.blocked ? "محجوب" : "مسموح"} hex={r.blocked ? "#22d3ee" : "#fb7185"} /> },
   ];
 
   return (
     <div>
-      <PageHeader icon={LogIn} title="محاولات الاختراق" hex="#fb7185" subtitle={`${rows.length} محاولة اليوم — ${rows.filter(r=>r.blocked).length} محظورة`} />
-
-      {/* خريطة العالم مع نقاط IPs */}
-      <div className="panel p-5 mb-6">
-        <h3 className="text-sm font-bold mb-3">توزيع IPs الجغرافي</h3>
-        <div className="relative w-full aspect-[2/1] rounded-xl overflow-hidden"
-             style={{ background: "radial-gradient(ellipse at center, rgba(34,211,238,0.06), rgba(2,6,23,0.9))", border: "1px solid rgba(255,255,255,0.06)" }}>
-          {/* شبكة خطوط */}
-          <svg viewBox="0 0 100 50" className="absolute inset-0 w-full h-full opacity-30">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <line key={`v${i}`} x1={i * 10} y1="0" x2={i * 10} y2="50" stroke="rgba(255,255,255,0.06)" strokeWidth="0.1" />
-            ))}
-            {Array.from({ length: 6 }).map((_, i) => (
-              <line key={`h${i}`} x1="0" y1={i * 10} x2="100" y2={i * 10} stroke="rgba(255,255,255,0.06)" strokeWidth="0.1" />
-            ))}
-            {/* قارات مبسّطة */}
-            <path d="M15,15 Q22,12 28,18 L26,26 Q20,28 15,22 Z" fill="rgba(34,211,238,0.08)" />
-            <path d="M45,12 Q55,10 62,18 L58,22 Q50,24 45,18 Z" fill="rgba(34,211,238,0.08)" />
-            <path d="M45,25 Q55,22 60,30 L55,38 Q48,36 45,30 Z" fill="rgba(34,211,238,0.08)" />
-            <path d="M70,15 Q82,12 88,22 L85,32 Q75,30 70,22 Z" fill="rgba(34,211,238,0.08)" />
-            <path d="M75,35 Q82,32 88,38 L85,42 Q78,42 75,38 Z" fill="rgba(34,211,238,0.08)" />
-          </svg>
-          {ATTACK_COORDS.map((c, i) => (
-            <div key={i} className="absolute -translate-x-1/2 -translate-y-1/2"
-                 style={{ left: `${c.x * 100}%`, top: `${c.y * 100}%` }}>
-              <div className="relative">
-                <div className="w-3 h-3 rounded-full animate-ping absolute inset-0"
-                     style={{ background: c.hex, opacity: 0.5 + (pulse % 2) * 0.2 }} />
-                <div className="w-3 h-3 rounded-full relative" style={{ background: c.hex, boxShadow: `0 0 12px ${c.hex}, 0 0 24px ${c.hex}` }} />
-              </div>
-            </div>
-          ))}
-        </div>
+      <PageHeader icon={Ban} title="محاولات الاختراق" hex="#fb7185"
+        subtitle={`${rows.length} محاولة — ${rows.filter((r: any) => r.blocked).length} محجوبة`} />
+      <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="panel p-4"><div className="text-xs text-muted-foreground">إجمالي</div><div className="text-2xl font-black text-rose-neon mt-1">{rows.length}</div></div>
+        <div className="panel p-4"><div className="text-xs text-muted-foreground">محجوبة</div><div className="text-2xl font-black text-cyan-neon mt-1">{rows.filter((r: any) => r.blocked).length}</div></div>
+        <div className="panel p-4 flex items-center justify-between"><div><div className="text-xs text-muted-foreground">جدار الحماية</div><div className="text-sm font-bold text-emerald-neon mt-1">نشط</div></div><Shield className="w-6 h-6 text-emerald-neon" /></div>
       </div>
-
       <DataTable rows={rows} columns={columns} />
     </div>
   );
