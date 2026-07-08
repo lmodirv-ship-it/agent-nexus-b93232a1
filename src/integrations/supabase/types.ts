@@ -14,7 +14,325 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      activity_log: {
+        Row: {
+          action: string | null
+          created_at: string | null
+          id: string
+          target: string | null
+        }
+        Insert: {
+          action?: string | null
+          created_at?: string | null
+          id?: string
+          target?: string | null
+        }
+        Update: {
+          action?: string | null
+          created_at?: string | null
+          id?: string
+          target?: string | null
+        }
+        Relationships: []
+      }
+      agent_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          current_cycle: number | null
+          goal: string
+          id: string
+          result_summary: string | null
+          scale: string | null
+          status: string | null
+          total_cycles: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_cycle?: number | null
+          goal: string
+          id?: string
+          result_summary?: string | null
+          scale?: string | null
+          status?: string | null
+          total_cycles?: number | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_cycle?: number | null
+          goal?: string
+          id?: string
+          result_summary?: string | null
+          scale?: string | null
+          status?: string | null
+          total_cycles?: number | null
+        }
+        Relationships: []
+      }
+      agent_tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          cycle: number | null
+          id: string
+          input: string | null
+          level: string
+          output: string | null
+          parent_id: string | null
+          role: string
+          session_id: string | null
+          status: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          cycle?: number | null
+          id?: string
+          input?: string | null
+          level: string
+          output?: string | null
+          parent_id?: string | null
+          role: string
+          session_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          cycle?: number | null
+          id?: string
+          input?: string | null
+          level?: string
+          output?: string | null
+          parent_id?: string | null
+          role?: string
+          session_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_tasks_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "agent_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_tasks_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "agent_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agents_catalog: {
+        Row: {
+          description: string | null
+          emoji: string | null
+          frequency: string | null
+          id: string
+          name_ar: string
+          role: string
+          slug: string
+        }
+        Insert: {
+          description?: string | null
+          emoji?: string | null
+          frequency?: string | null
+          id?: string
+          name_ar: string
+          role: string
+          slug: string
+        }
+        Update: {
+          description?: string | null
+          emoji?: string | null
+          frequency?: string | null
+          id?: string
+          name_ar?: string
+          role?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      backups: {
+        Row: {
+          created_at: string | null
+          id: string
+          site_id: string | null
+          size_gb: number | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          site_id?: string | null
+          size_gb?: number | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          site_id?: string | null
+          size_gb?: number | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "backups_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      databases_registry: {
+        Row: {
+          created_at: string | null
+          engine: string | null
+          id: string
+          name: string
+          site_id: string | null
+          size_gb: number | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          engine?: string | null
+          id?: string
+          name: string
+          site_id?: string | null
+          size_gb?: number | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          engine?: string | null
+          id?: string
+          name?: string
+          site_id?: string | null
+          size_gb?: number | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "databases_registry_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string | null
+          severity: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          severity?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          severity?: string | null
+        }
+        Relationships: []
+      }
+      security_events: {
+        Row: {
+          created_at: string | null
+          id: string
+          kind: string
+          message: string | null
+          severity: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          kind: string
+          message?: string | null
+          severity?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          kind?: string
+          message?: string | null
+          severity?: string | null
+        }
+        Relationships: []
+      }
+      sites: {
+        Row: {
+          created_at: string | null
+          db_size_gb: number | null
+          domain: string
+          icon_color: string | null
+          id: string
+          status: string
+          storage_gb: number | null
+          users_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          db_size_gb?: number | null
+          domain: string
+          icon_color?: string | null
+          id?: string
+          status?: string
+          storage_gb?: number | null
+          users_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          db_size_gb?: number | null
+          domain?: string
+          icon_color?: string | null
+          id?: string
+          status?: string
+          storage_gb?: number | null
+          users_count?: number | null
+        }
+        Relationships: []
+      }
+      storage_folders: {
+        Row: {
+          created_at: string | null
+          file_count: number | null
+          icon: string | null
+          id: string
+          name: string
+          size_gb: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_count?: number | null
+          icon?: string | null
+          id?: string
+          name: string
+          size_gb?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          file_count?: number | null
+          icon?: string | null
+          id?: string
+          name?: string
+          size_gb?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
