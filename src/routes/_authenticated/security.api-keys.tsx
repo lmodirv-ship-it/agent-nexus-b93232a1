@@ -5,7 +5,7 @@ import { PageHeader, NeonButton, StatusPill } from "@/components/dashboard/PageH
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { MOCK_KEYS, type ApiKey } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/security/api-keys")({
+export const Route = createFileRoute("/_authenticated/security/api-keys")({
   head: () => ({ meta: [{ title: "مفاتيح API — SUPER ADMIN" }, { name: "description", content: "إنشاء وإدارة مفاتيح API." }] }),
   component: KeysPage,
 });

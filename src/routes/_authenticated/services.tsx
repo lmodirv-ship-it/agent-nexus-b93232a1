@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { MOCK_SITES } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/services")({
+export const Route = createFileRoute("/_authenticated/services")({
   head: () => ({
     meta: [
       { title: "شبكة الخدمات — Service Mesh" },

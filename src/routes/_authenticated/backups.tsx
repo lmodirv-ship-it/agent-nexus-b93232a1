@@ -5,7 +5,7 @@ import { PageHeader, NeonButton, StatusPill } from "@/components/dashboard/PageH
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { MOCK_BACKUPS, type Backup } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/backups")({
+export const Route = createFileRoute("/_authenticated/backups")({
   head: () => ({ meta: [{ title: "النسخ الاحتياطي — SUPER ADMIN" }, { name: "description", content: "إدارة النسخ الاحتياطية والاستعادة." }] }),
   component: BackupsPage,
 });

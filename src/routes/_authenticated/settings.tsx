@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Settings, Bell, Globe, Moon, Shield, Zap, Save } from "lucide-react";
 import { PageHeader, NeonButton } from "@/components/dashboard/PageHeader";
 
-export const Route = createFileRoute("/settings")({
+export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "الإعدادات — SUPER ADMIN" }, { name: "description", content: "إعدادات النظام والتفضيلات." }] }),
   component: SettingsPage,
 });

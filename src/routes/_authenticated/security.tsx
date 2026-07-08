@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Shield, ShieldCheck, ShieldAlert, Lock, Zap, LogIn, Key, ArrowLeft } from "lucide-react";
 import { PageHeader, StatusPill } from "@/components/dashboard/PageHeader";
 
-export const Route = createFileRoute("/security")({
+export const Route = createFileRoute("/_authenticated/security")({
   head: () => ({ meta: [{ title: "مركز الحماية — SUPER ADMIN" }, { name: "description", content: "نظرة عامة على أنظمة الحماية." }] }),
   component: SecurityPage,
 });

@@ -5,7 +5,7 @@ import { PageHeader, NeonButton, StatusPill } from "@/components/dashboard/PageH
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { MOCK_DBS, type DbRow } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/databases")({
+export const Route = createFileRoute("/_authenticated/databases")({
   head: () => ({ meta: [{ title: "قواعد البيانات — SUPER ADMIN" }, { name: "description", content: "مراقبة وإدارة قواعد البيانات." }] }),
   component: DatabasesPage,
 });

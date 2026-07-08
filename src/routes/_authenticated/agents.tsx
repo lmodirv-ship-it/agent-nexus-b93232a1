@@ -6,7 +6,7 @@ import {
   ShieldCheck, Database, Cloud, Sparkles, Wrench, Radio, Power, PowerOff,
 } from "lucide-react";
 
-export const Route = createFileRoute("/agents")({
+export const Route = createFileRoute("/_authenticated/agents")({
   head: () => ({
     meta: [
       { title: "غرفة القيادة — إدارة الوكلاء | SUPER ADMIN" },
