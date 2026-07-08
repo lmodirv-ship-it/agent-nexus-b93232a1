@@ -9,9 +9,66 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StorageRouteImport } from './routes/storage'
+import { Route as SitesRouteImport } from './routes/sites'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SecurityRouteImport } from './routes/security'
+import { Route as PerformanceRouteImport } from './routes/performance'
+import { Route as FoldersRouteImport } from './routes/folders'
+import { Route as DatabasesRouteImport } from './routes/databases'
+import { Route as BackupsRouteImport } from './routes/backups'
+import { Route as AiCommandRouteImport } from './routes/ai-command'
 import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SecurityAttemptsRouteImport } from './routes/security.attempts'
+import { Route as SecurityApiKeysRouteImport } from './routes/security.api-keys'
+import { Route as AgentsAgentIdRouteImport } from './routes/agents.$agentId'
 
+const StorageRoute = StorageRouteImport.update({
+  id: '/storage',
+  path: '/storage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitesRoute = SitesRouteImport.update({
+  id: '/sites',
+  path: '/sites',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SecurityRoute = SecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerformanceRoute = PerformanceRouteImport.update({
+  id: '/performance',
+  path: '/performance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FoldersRoute = FoldersRouteImport.update({
+  id: '/folders',
+  path: '/folders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DatabasesRoute = DatabasesRouteImport.update({
+  id: '/databases',
+  path: '/databases',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BackupsRoute = BackupsRouteImport.update({
+  id: '/backups',
+  path: '/backups',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiCommandRoute = AiCommandRouteImport.update({
+  id: '/ai-command',
+  path: '/ai-command',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgentsRoute = AgentsRouteImport.update({
   id: '/agents',
   path: '/agents',
@@ -22,35 +79,201 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SecurityAttemptsRoute = SecurityAttemptsRouteImport.update({
+  id: '/attempts',
+  path: '/attempts',
+  getParentRoute: () => SecurityRoute,
+} as any)
+const SecurityApiKeysRoute = SecurityApiKeysRouteImport.update({
+  id: '/api-keys',
+  path: '/api-keys',
+  getParentRoute: () => SecurityRoute,
+} as any)
+const AgentsAgentIdRoute = AgentsAgentIdRouteImport.update({
+  id: '/$agentId',
+  path: '/$agentId',
+  getParentRoute: () => AgentsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/agents': typeof AgentsRoute
+  '/agents': typeof AgentsRouteWithChildren
+  '/ai-command': typeof AiCommandRoute
+  '/backups': typeof BackupsRoute
+  '/databases': typeof DatabasesRoute
+  '/folders': typeof FoldersRoute
+  '/performance': typeof PerformanceRoute
+  '/security': typeof SecurityRouteWithChildren
+  '/settings': typeof SettingsRoute
+  '/sites': typeof SitesRoute
+  '/storage': typeof StorageRoute
+  '/agents/$agentId': typeof AgentsAgentIdRoute
+  '/security/api-keys': typeof SecurityApiKeysRoute
+  '/security/attempts': typeof SecurityAttemptsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/agents': typeof AgentsRoute
+  '/agents': typeof AgentsRouteWithChildren
+  '/ai-command': typeof AiCommandRoute
+  '/backups': typeof BackupsRoute
+  '/databases': typeof DatabasesRoute
+  '/folders': typeof FoldersRoute
+  '/performance': typeof PerformanceRoute
+  '/security': typeof SecurityRouteWithChildren
+  '/settings': typeof SettingsRoute
+  '/sites': typeof SitesRoute
+  '/storage': typeof StorageRoute
+  '/agents/$agentId': typeof AgentsAgentIdRoute
+  '/security/api-keys': typeof SecurityApiKeysRoute
+  '/security/attempts': typeof SecurityAttemptsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/agents': typeof AgentsRoute
+  '/agents': typeof AgentsRouteWithChildren
+  '/ai-command': typeof AiCommandRoute
+  '/backups': typeof BackupsRoute
+  '/databases': typeof DatabasesRoute
+  '/folders': typeof FoldersRoute
+  '/performance': typeof PerformanceRoute
+  '/security': typeof SecurityRouteWithChildren
+  '/settings': typeof SettingsRoute
+  '/sites': typeof SitesRoute
+  '/storage': typeof StorageRoute
+  '/agents/$agentId': typeof AgentsAgentIdRoute
+  '/security/api-keys': typeof SecurityApiKeysRoute
+  '/security/attempts': typeof SecurityAttemptsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/agents'
+  fullPaths:
+    | '/'
+    | '/agents'
+    | '/ai-command'
+    | '/backups'
+    | '/databases'
+    | '/folders'
+    | '/performance'
+    | '/security'
+    | '/settings'
+    | '/sites'
+    | '/storage'
+    | '/agents/$agentId'
+    | '/security/api-keys'
+    | '/security/attempts'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/agents'
-  id: '__root__' | '/' | '/agents'
+  to:
+    | '/'
+    | '/agents'
+    | '/ai-command'
+    | '/backups'
+    | '/databases'
+    | '/folders'
+    | '/performance'
+    | '/security'
+    | '/settings'
+    | '/sites'
+    | '/storage'
+    | '/agents/$agentId'
+    | '/security/api-keys'
+    | '/security/attempts'
+  id:
+    | '__root__'
+    | '/'
+    | '/agents'
+    | '/ai-command'
+    | '/backups'
+    | '/databases'
+    | '/folders'
+    | '/performance'
+    | '/security'
+    | '/settings'
+    | '/sites'
+    | '/storage'
+    | '/agents/$agentId'
+    | '/security/api-keys'
+    | '/security/attempts'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AgentsRoute: typeof AgentsRoute
+  AgentsRoute: typeof AgentsRouteWithChildren
+  AiCommandRoute: typeof AiCommandRoute
+  BackupsRoute: typeof BackupsRoute
+  DatabasesRoute: typeof DatabasesRoute
+  FoldersRoute: typeof FoldersRoute
+  PerformanceRoute: typeof PerformanceRoute
+  SecurityRoute: typeof SecurityRouteWithChildren
+  SettingsRoute: typeof SettingsRoute
+  SitesRoute: typeof SitesRoute
+  StorageRoute: typeof StorageRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/storage': {
+      id: '/storage'
+      path: '/storage'
+      fullPath: '/storage'
+      preLoaderRoute: typeof StorageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sites': {
+      id: '/sites'
+      path: '/sites'
+      fullPath: '/sites'
+      preLoaderRoute: typeof SitesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/security': {
+      id: '/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof SecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/performance': {
+      id: '/performance'
+      path: '/performance'
+      fullPath: '/performance'
+      preLoaderRoute: typeof PerformanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/folders': {
+      id: '/folders'
+      path: '/folders'
+      fullPath: '/folders'
+      preLoaderRoute: typeof FoldersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/databases': {
+      id: '/databases'
+      path: '/databases'
+      fullPath: '/databases'
+      preLoaderRoute: typeof DatabasesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/backups': {
+      id: '/backups'
+      path: '/backups'
+      fullPath: '/backups'
+      preLoaderRoute: typeof BackupsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-command': {
+      id: '/ai-command'
+      path: '/ai-command'
+      fullPath: '/ai-command'
+      preLoaderRoute: typeof AiCommandRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agents': {
       id: '/agents'
       path: '/agents'
@@ -65,12 +288,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/security/attempts': {
+      id: '/security/attempts'
+      path: '/attempts'
+      fullPath: '/security/attempts'
+      preLoaderRoute: typeof SecurityAttemptsRouteImport
+      parentRoute: typeof SecurityRoute
+    }
+    '/security/api-keys': {
+      id: '/security/api-keys'
+      path: '/api-keys'
+      fullPath: '/security/api-keys'
+      preLoaderRoute: typeof SecurityApiKeysRouteImport
+      parentRoute: typeof SecurityRoute
+    }
+    '/agents/$agentId': {
+      id: '/agents/$agentId'
+      path: '/$agentId'
+      fullPath: '/agents/$agentId'
+      preLoaderRoute: typeof AgentsAgentIdRouteImport
+      parentRoute: typeof AgentsRoute
+    }
   }
 }
 
+interface AgentsRouteChildren {
+  AgentsAgentIdRoute: typeof AgentsAgentIdRoute
+}
+
+const AgentsRouteChildren: AgentsRouteChildren = {
+  AgentsAgentIdRoute: AgentsAgentIdRoute,
+}
+
+const AgentsRouteWithChildren =
+  AgentsRoute._addFileChildren(AgentsRouteChildren)
+
+interface SecurityRouteChildren {
+  SecurityApiKeysRoute: typeof SecurityApiKeysRoute
+  SecurityAttemptsRoute: typeof SecurityAttemptsRoute
+}
+
+const SecurityRouteChildren: SecurityRouteChildren = {
+  SecurityApiKeysRoute: SecurityApiKeysRoute,
+  SecurityAttemptsRoute: SecurityAttemptsRoute,
+}
+
+const SecurityRouteWithChildren = SecurityRoute._addFileChildren(
+  SecurityRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AgentsRoute: AgentsRoute,
+  AgentsRoute: AgentsRouteWithChildren,
+  AiCommandRoute: AiCommandRoute,
+  BackupsRoute: BackupsRoute,
+  DatabasesRoute: DatabasesRoute,
+  FoldersRoute: FoldersRoute,
+  PerformanceRoute: PerformanceRoute,
+  SecurityRoute: SecurityRouteWithChildren,
+  SettingsRoute: SettingsRoute,
+  SitesRoute: SitesRoute,
+  StorageRoute: StorageRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
