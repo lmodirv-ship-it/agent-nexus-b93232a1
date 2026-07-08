@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedStorageRouteImport } from './routes/_authenticated/storage'
 import { Route as AuthenticatedSitesRouteImport } from './routes/_authenticated/sites'
@@ -18,6 +20,7 @@ import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedPerformanceRouteImport } from './routes/_authenticated/performance'
 import { Route as AuthenticatedFoldersRouteImport } from './routes/_authenticated/folders'
 import { Route as AuthenticatedDatabasesRouteImport } from './routes/_authenticated/databases'
+import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated/clients'
 import { Route as AuthenticatedBackupsRouteImport } from './routes/_authenticated/backups'
 import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
 import { Route as AuthenticatedAiCommandRouteImport } from './routes/_authenticated/ai-command'
@@ -26,71 +29,85 @@ import { Route as AuthenticatedSecurityAttemptsRouteImport } from './routes/_aut
 import { Route as AuthenticatedSecurityApiKeysRouteImport } from './routes/_authenticated/security.api-keys'
 import { Route as AuthenticatedAgentsAgentIdRouteImport } from './routes/_authenticated/agents.$agentId'
 
-const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
-  id: '/_authenticated/',
-  path: '/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedStorageRoute = AuthenticatedStorageRouteImport.update({
-  id: '/_authenticated/storage',
+  id: '/storage',
   path: '/storage',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSitesRoute = AuthenticatedSitesRouteImport.update({
-  id: '/_authenticated/sites',
+  id: '/sites',
   path: '/sites',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
-  id: '/_authenticated/settings',
+  id: '/settings',
   path: '/settings',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedServicesRoute = AuthenticatedServicesRouteImport.update({
-  id: '/_authenticated/services',
+  id: '/services',
   path: '/services',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSecurityRoute = AuthenticatedSecurityRouteImport.update({
-  id: '/_authenticated/security',
+  id: '/security',
   path: '/security',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPerformanceRoute =
   AuthenticatedPerformanceRouteImport.update({
-    id: '/_authenticated/performance',
+    id: '/performance',
     path: '/performance',
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedFoldersRoute = AuthenticatedFoldersRouteImport.update({
-  id: '/_authenticated/folders',
+  id: '/folders',
   path: '/folders',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDatabasesRoute = AuthenticatedDatabasesRouteImport.update({
-  id: '/_authenticated/databases',
+  id: '/databases',
   path: '/databases',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedClientsRoute = AuthenticatedClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedBackupsRoute = AuthenticatedBackupsRouteImport.update({
-  id: '/_authenticated/backups',
+  id: '/backups',
   path: '/backups',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAuditRoute = AuthenticatedAuditRouteImport.update({
-  id: '/_authenticated/audit',
+  id: '/audit',
   path: '/audit',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAiCommandRoute = AuthenticatedAiCommandRouteImport.update({
-  id: '/_authenticated/ai-command',
+  id: '/ai-command',
   path: '/ai-command',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAgentsRoute = AuthenticatedAgentsRouteImport.update({
-  id: '/_authenticated/agents',
+  id: '/agents',
   path: '/agents',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSecurityAttemptsRoute =
   AuthenticatedSecurityAttemptsRouteImport.update({
@@ -112,10 +129,13 @@ const AuthenticatedAgentsAgentIdRoute =
   } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof AuthenticatedIndexRoute
+  '/auth': typeof AuthRoute
   '/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/ai-command': typeof AuthenticatedAiCommandRoute
   '/audit': typeof AuthenticatedAuditRoute
   '/backups': typeof AuthenticatedBackupsRoute
+  '/clients': typeof AuthenticatedClientsRoute
   '/databases': typeof AuthenticatedDatabasesRoute
   '/folders': typeof AuthenticatedFoldersRoute
   '/performance': typeof AuthenticatedPerformanceRoute
@@ -124,16 +144,17 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/sites': typeof AuthenticatedSitesRoute
   '/storage': typeof AuthenticatedStorageRoute
-  '/': typeof AuthenticatedIndexRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/security/api-keys': typeof AuthenticatedSecurityApiKeysRoute
   '/security/attempts': typeof AuthenticatedSecurityAttemptsRoute
 }
 export interface FileRoutesByTo {
+  '/auth': typeof AuthRoute
   '/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/ai-command': typeof AuthenticatedAiCommandRoute
   '/audit': typeof AuthenticatedAuditRoute
   '/backups': typeof AuthenticatedBackupsRoute
+  '/clients': typeof AuthenticatedClientsRoute
   '/databases': typeof AuthenticatedDatabasesRoute
   '/folders': typeof AuthenticatedFoldersRoute
   '/performance': typeof AuthenticatedPerformanceRoute
@@ -149,10 +170,13 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
   '/_authenticated/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/_authenticated/ai-command': typeof AuthenticatedAiCommandRoute
   '/_authenticated/audit': typeof AuthenticatedAuditRoute
   '/_authenticated/backups': typeof AuthenticatedBackupsRoute
+  '/_authenticated/clients': typeof AuthenticatedClientsRoute
   '/_authenticated/databases': typeof AuthenticatedDatabasesRoute
   '/_authenticated/folders': typeof AuthenticatedFoldersRoute
   '/_authenticated/performance': typeof AuthenticatedPerformanceRoute
@@ -169,10 +193,13 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
+    | '/auth'
     | '/agents'
     | '/ai-command'
     | '/audit'
     | '/backups'
+    | '/clients'
     | '/databases'
     | '/folders'
     | '/performance'
@@ -181,16 +208,17 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sites'
     | '/storage'
-    | '/'
     | '/agents/$agentId'
     | '/security/api-keys'
     | '/security/attempts'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/auth'
     | '/agents'
     | '/ai-command'
     | '/audit'
     | '/backups'
+    | '/clients'
     | '/databases'
     | '/folders'
     | '/performance'
@@ -205,10 +233,13 @@ export interface FileRouteTypes {
     | '/security/attempts'
   id:
     | '__root__'
+    | '/_authenticated'
+    | '/auth'
     | '/_authenticated/agents'
     | '/_authenticated/ai-command'
     | '/_authenticated/audit'
     | '/_authenticated/backups'
+    | '/_authenticated/clients'
     | '/_authenticated/databases'
     | '/_authenticated/folders'
     | '/_authenticated/performance'
@@ -224,113 +255,123 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AuthenticatedAgentsRoute: typeof AuthenticatedAgentsRouteWithChildren
-  AuthenticatedAiCommandRoute: typeof AuthenticatedAiCommandRoute
-  AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
-  AuthenticatedBackupsRoute: typeof AuthenticatedBackupsRoute
-  AuthenticatedDatabasesRoute: typeof AuthenticatedDatabasesRoute
-  AuthenticatedFoldersRoute: typeof AuthenticatedFoldersRoute
-  AuthenticatedPerformanceRoute: typeof AuthenticatedPerformanceRoute
-  AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRouteWithChildren
-  AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
-  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
-  AuthenticatedSitesRoute: typeof AuthenticatedSitesRoute
-  AuthenticatedStorageRoute: typeof AuthenticatedStorageRoute
-  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/': {
       id: '/_authenticated/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/storage': {
       id: '/_authenticated/storage'
       path: '/storage'
       fullPath: '/storage'
       preLoaderRoute: typeof AuthenticatedStorageRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/sites': {
       id: '/_authenticated/sites'
       path: '/sites'
       fullPath: '/sites'
       preLoaderRoute: typeof AuthenticatedSitesRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/services': {
       id: '/_authenticated/services'
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof AuthenticatedServicesRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/security': {
       id: '/_authenticated/security'
       path: '/security'
       fullPath: '/security'
       preLoaderRoute: typeof AuthenticatedSecurityRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/performance': {
       id: '/_authenticated/performance'
       path: '/performance'
       fullPath: '/performance'
       preLoaderRoute: typeof AuthenticatedPerformanceRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/folders': {
       id: '/_authenticated/folders'
       path: '/folders'
       fullPath: '/folders'
       preLoaderRoute: typeof AuthenticatedFoldersRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/databases': {
       id: '/_authenticated/databases'
       path: '/databases'
       fullPath: '/databases'
       preLoaderRoute: typeof AuthenticatedDatabasesRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clients': {
+      id: '/_authenticated/clients'
+      path: '/clients'
+      fullPath: '/clients'
+      preLoaderRoute: typeof AuthenticatedClientsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/backups': {
       id: '/_authenticated/backups'
       path: '/backups'
       fullPath: '/backups'
       preLoaderRoute: typeof AuthenticatedBackupsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/audit': {
       id: '/_authenticated/audit'
       path: '/audit'
       fullPath: '/audit'
       preLoaderRoute: typeof AuthenticatedAuditRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/ai-command': {
       id: '/_authenticated/ai-command'
       path: '/ai-command'
       fullPath: '/ai-command'
       preLoaderRoute: typeof AuthenticatedAiCommandRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/agents': {
       id: '/_authenticated/agents'
       path: '/agents'
       fullPath: '/agents'
       preLoaderRoute: typeof AuthenticatedAgentsRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/security/attempts': {
       id: '/_authenticated/security/attempts'
@@ -382,11 +423,29 @@ const AuthenticatedSecurityRouteWithChildren =
     AuthenticatedSecurityRouteChildren,
   )
 
-const rootRouteChildren: RootRouteChildren = {
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAgentsRoute: typeof AuthenticatedAgentsRouteWithChildren
+  AuthenticatedAiCommandRoute: typeof AuthenticatedAiCommandRoute
+  AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
+  AuthenticatedBackupsRoute: typeof AuthenticatedBackupsRoute
+  AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
+  AuthenticatedDatabasesRoute: typeof AuthenticatedDatabasesRoute
+  AuthenticatedFoldersRoute: typeof AuthenticatedFoldersRoute
+  AuthenticatedPerformanceRoute: typeof AuthenticatedPerformanceRoute
+  AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRouteWithChildren
+  AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedSitesRoute: typeof AuthenticatedSitesRoute
+  AuthenticatedStorageRoute: typeof AuthenticatedStorageRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAgentsRoute: AuthenticatedAgentsRouteWithChildren,
   AuthenticatedAiCommandRoute: AuthenticatedAiCommandRoute,
   AuthenticatedAuditRoute: AuthenticatedAuditRoute,
   AuthenticatedBackupsRoute: AuthenticatedBackupsRoute,
+  AuthenticatedClientsRoute: AuthenticatedClientsRoute,
   AuthenticatedDatabasesRoute: AuthenticatedDatabasesRoute,
   AuthenticatedFoldersRoute: AuthenticatedFoldersRoute,
   AuthenticatedPerformanceRoute: AuthenticatedPerformanceRoute,
@@ -396,6 +455,14 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedSitesRoute: AuthenticatedSitesRoute,
   AuthenticatedStorageRoute: AuthenticatedStorageRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+const rootRouteChildren: RootRouteChildren = {
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

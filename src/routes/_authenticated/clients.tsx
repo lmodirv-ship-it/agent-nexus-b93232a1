@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authenticated/clients")({
   notFoundComponent: () => <div className="panel p-6">لم يوجد</div>,
 });
 
-type Client = { id: string; name: string; email?: string; phone?: string; company?: string; status?: string; notes?: string; sites_count?: number };
+type Client = { id: string; name: string; email?: string | null; phone?: string | null; company?: string | null; status?: string | null; notes?: string | null; sites_count?: number };
 
 function ClientsPage() {
   const { data: clients } = useSuspenseQuery(clientsQ);
