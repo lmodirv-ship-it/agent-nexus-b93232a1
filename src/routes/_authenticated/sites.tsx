@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useSuspenseQuery, queryOptions, useQueryClient } from "@tanstack/react-query";
-import { Globe, Plus, Search, ExternalLink, Trash2, Users, HardDrive } from "lucide-react";
+import { Globe, Plus, Search, ExternalLink, Trash2, Users, HardDrive, Mail } from "lucide-react";
 import { PageHeader, NeonButton, StatusPill } from "@/components/dashboard/PageHeader";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
-import { listSites, deleteSite } from "@/lib/queries.functions";
+import { listSites, deleteSite, upsertSite } from "@/lib/queries.functions";
 
 const sitesQ = queryOptions({ queryKey: ["sites"], queryFn: () => listSites() });
 
