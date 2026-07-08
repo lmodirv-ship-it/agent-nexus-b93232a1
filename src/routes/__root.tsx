@@ -98,12 +98,20 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="flex min-h-screen w-full">
+      <div className="lab-shell flex min-h-screen w-full">
+        <div className="lab-scan" aria-hidden />
         <Sidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <TopBar />
+          <div className="px-6 pt-4">
+            <LabHUD />
+          </div>
           <main className="flex-1 p-6 min-w-0">
-            <Outlet />
+            <div className="lab-frame">
+              <span className="lab-corner-tr" />
+              <span className="lab-corner-br" />
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>
