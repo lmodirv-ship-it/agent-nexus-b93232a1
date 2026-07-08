@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Sidebar } from "../components/dashboard/Sidebar";
 import { TopBar } from "../components/dashboard/TopBar";
+import { LabHUD } from "../components/dashboard/LabHUD";
 
 function NotFoundComponent() {
   return (
