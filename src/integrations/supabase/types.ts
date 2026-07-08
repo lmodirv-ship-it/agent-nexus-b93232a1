@@ -71,6 +71,57 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_site_links: {
+        Row: {
+          agent_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          last_sync_at: string | null
+          note: string | null
+          site_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_sync_at?: string | null
+          note?: string | null
+          site_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_sync_at?: string | null
+          note?: string | null
+          site_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_site_links_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_site_links_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_tasks: {
         Row: {
           completed_at: string | null
