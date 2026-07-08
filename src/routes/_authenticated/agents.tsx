@@ -259,6 +259,20 @@ function AgentsPage() {
                     )}
                   </td>
                   <td className="py-2.5 px-3 text-center">
+                    {(() => {
+                      const c = linkCounts.get(r.id) ?? 0;
+                      const hex = c > 0 ? "#22d3ee" : "#64748b";
+                      return (
+                        <button onClick={() => setLinkModal({ id: r.id, name: r.name_ar })}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold"
+                          style={{ background: `${hex}18`, color: hex, border: `1px solid ${hex}55` }}>
+                          <Link2 className="w-3 h-3" />
+                          {c > 0 ? `${c} مربوط` : "ربط"}
+                        </button>
+                      );
+                    })()}
+                  </td>
+                  <td className="py-2.5 px-3 text-center">
                     <button
                       onClick={() => mToggle.mutate({ id: r.id, is_active: !r.is_active })}
                       disabled={mToggle.isPending}
@@ -275,7 +289,7 @@ function AgentsPage() {
             })}
             {pageRows.length === 0 && (
               <tr>
-                <td colSpan={7} className="py-10 text-center text-slate-500">لا نتائج مطابقة.</td>
+                <td colSpan={8} className="py-10 text-center text-slate-500">لا نتائج مطابقة.</td>
               </tr>
             )}
           </tbody>
@@ -309,6 +323,10 @@ function AgentsPage() {
           إدارة المواقع والبريد ←
         </Link>
       </div>
+
+      {linkModal && (
+        <AgentSitesModal agentId={linkModal.id} agentName={linkModal.name} onClose={() => setLinkModal(null)} />
+      )}
     </div>
   );
 }
