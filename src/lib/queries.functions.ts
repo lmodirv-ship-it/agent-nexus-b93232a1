@@ -211,3 +211,69 @@ export const setUserRole = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
+// ============ Generic CRUD for remaining tables ============
+const listFn = (table: string, order = "created_at") =>
+  createServerFn({ method: "GET" })
+    .middleware([requireSupabaseAuth])
+    .handler(async ({ context }) => {
+      const { data, error } = await context.supabase.from(table as any).select("*").order(order, { ascending: false });
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    });
+
+const upsertFn = (table: string, action: string) =>
+  createServerFn({ method: "POST" })
+    .middleware([requireSupabaseAuth])
+    .inputValidator((d: any) => d)
+    .handler(async ({ data, context }) => {
+      const res = data.id
+        ? await context.supabase.from(table as any).update(data).eq("id", data.id).select().single()
+        : await context.supabase.from(table as any).insert(data).select().single();
+      if (res.error) throw new Error(res.error.message);
+      await context.supabase.from("audit_log").insert({
+        actor_id: context.userId, action: data.id ? `${action}.update` : `${action}.create`,
+        target: `${table}/${(res.data as any).id}`,
+      });
+      return res.data;
+    });
+
+const deleteFn = (table: string, action: string) =>
+  createServerFn({ method: "POST" })
+    .middleware([requireSupabaseAuth])
+    .inputValidator((d: { id: string }) => d)
+    .handler(async ({ data, context }) => {
+      const { error } = await context.supabase.from(table as any).delete().eq("id", data.id);
+      if (error) throw new Error(error.message);
+      await context.supabase.from("audit_log").insert({
+        actor_id: context.userId, action: `${action}.delete`, target: `${table}/${data.id}`,
+      });
+      return { ok: true };
+    });
+
+export const listDatabases = listFn("databases_registry");
+export const upsertDatabase = upsertFn("databases_registry", "database");
+export const deleteDatabase = deleteFn("databases_registry", "database");
+
+export const listBackups = listFn("backups");
+export const upsertBackup = upsertFn("backups", "backup");
+export const deleteBackup = deleteFn("backups", "backup");
+
+export const listFolders = listFn("storage_folders");
+export const upsertFolder = upsertFn("storage_folders", "folder");
+export const deleteFolder = deleteFn("storage_folders", "folder");
+
+export const listSecurityEvents = listFn("security_events");
+export const listAttackAttempts = listFn("attack_attempts");
+export const upsertAttackAttempt = upsertFn("attack_attempts", "attack");
+
+export const listApiKeys = listFn("api_keys");
+export const createApiKey = upsertFn("api_keys", "api_key");
+export const revokeApiKey = deleteFn("api_keys", "api_key");
+
+export const listServices = listFn("services");
+export const upsertService = upsertFn("services", "service");
+export const deleteService = deleteFn("services", "service");
+export const listServiceLogs = listFn("service_call_logs");
+export const listServiceDependencies = listFn("service_dependencies");
+
