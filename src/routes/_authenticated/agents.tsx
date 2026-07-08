@@ -1,327 +1,295 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import {
-  Play, Square, RotateCw, Zap, Settings2, Activity, Bot, AlertCircle,
-  CheckCircle2, Search, Filter, Terminal, Cpu, MemoryStick, Timer,
-  ShieldCheck, Database, Cloud, Sparkles, Wrench, Radio, Power, PowerOff,
-} from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { useSuspenseQuery, useMutation, useQueryClient, queryOptions } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Power, PowerOff, Search, Zap, CheckCircle2, XCircle, Bot } from "lucide-react";
+import { getAgentsCatalog, setAgentActive, setAllAgentsActive } from "@/lib/queries.functions";
+
+const catalogQO = queryOptions({
+  queryKey: ["agents_catalog"],
+  queryFn: () => getAgentsCatalog(),
+});
 
 export const Route = createFileRoute("/_authenticated/agents")({
   head: () => ({
     meta: [
-      { title: "غرفة القيادة — إدارة الوكلاء | SUPER ADMIN" },
-      { name: "description", content: "غرفة قيادة متقدمة لتشغيل وإيقاف وجدولة وكلاء المنصة لحظياً." },
+      { title: "غرفة القيادة — إدارة الوكلاء" },
+      { name: "description", content: "جدول شامل لكل الوكلاء مع تفعيل جماعي وربط المواقع بالبريد." },
     ],
   }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(catalogQO),
   component: AgentsPage,
 });
 
-type Status = "running" | "stopped" | "error";
-interface Agent {
+type AgentRow = {
   id: string;
-  name: string;
-  nameAr: string;
-  status: Status;
-  interval: number;
-  lastRun: string;
-  tasks: number;
-  cpu: number;
-  ram: number;
-  category: "monitor" | "security" | "ai" | "infra" | "backup" | "ops";
-  icon: any;
-  hex: string;
-  desc: string;
-}
-
-const CAT_META: Record<Agent["category"], { label: string; hex: string }> = {
-  monitor:  { label: "مراقبة",  hex: "#22d3ee" },
-  security: { label: "حماية",   hex: "#fb7185" },
-  ai:       { label: "ذكاء",    hex: "#a78bfa" },
-  infra:    { label: "بنية",    hex: "#38bdf8" },
-  backup:   { label: "نسخ",     hex: "#34d399" },
-  ops:      { label: "تشغيل",   hex: "#fbbf24" },
+  slug: string;
+  name_ar: string;
+  role: string;
+  description: string | null;
+  emoji: string | null;
+  frequency: string | null;
+  is_active: boolean;
 };
 
-const INITIAL: Agent[] = [
-  { id: "uptime",     name: "Uptime Monitor",     nameAr: "مراقب التوفر",     status: "running", interval: 30,     lastRun: "12:30:45", tasks: 4821, cpu: 4,  ram: 12, category: "monitor",  icon: Radio,       hex: "#22d3ee", desc: "يفحص جميع المواقع كل 30 ثانية." },
-  { id: "waf",        name: "WAF Sentinel",       nameAr: "حارس الجدار",       status: "running", interval: 10,     lastRun: "12:31:00", tasks: 18240,cpu: 11, ram: 26, category: "security", icon: ShieldCheck, hex: "#fb7185", desc: "يحلل الطلبات ويحظر الاعتداءات." },
-  { id: "ai_dbg",     name: "AI Debugger",        nameAr: "المصحح الذكي",      status: "stopped", interval: 300,    lastRun: "11:20:00", tasks: 132,  cpu: 0,  ram: 0,  category: "ai",       icon: Sparkles,    hex: "#a78bfa", desc: "يقترح ويطبق إصلاحات تلقائية." },
-  { id: "scaler",     name: "Auto-Scaler",        nameAr: "التوسع الذاتي",     status: "running", interval: 30,     lastRun: "12:29:30", tasks: 74,   cpu: 3,  ram: 8,  category: "infra",    icon: Cpu,         hex: "#38bdf8", desc: "يوسّع أو يقلّص النسخ حسب الضغط." },
-  { id: "backup",     name: "Core Backup",        nameAr: "النسخ الاحتياطي",   status: "running", interval: 3600,   lastRun: "12:00:00", tasks: 168,  cpu: 2,  ram: 6,  category: "backup",   icon: Database,    hex: "#34d399", desc: "نسخة لقاعدة الدماغ كل ساعة." },
-  { id: "mesh",       name: "Mesh Orchestrator",  nameAr: "منسق الشبكة",       status: "error",   interval: 60,     lastRun: "10:15:00", tasks: 902,  cpu: 0,  ram: 0,  category: "infra",    icon: Cloud,       hex: "#38bdf8", desc: "يربط المواقع بالدماغ المركزي." },
-  { id: "supervisor", name: "Supervisor",         nameAr: "المشرف الأعلى",     status: "running", interval: 15,     lastRun: "12:31:15", tasks: 60421,cpu: 5,  ram: 14, category: "ops",      icon: Wrench,      hex: "#fbbf24", desc: "يعيد تشغيل أي وكيل يتوقف." },
-  { id: "report",     name: "Weekly Report",      nameAr: "التقرير الأسبوعي",  status: "running", interval: 604800, lastRun: "2026-06-30", tasks: 14, cpu: 1,  ram: 3,  category: "ops",      icon: Terminal,    hex: "#fbbf24", desc: "يرسل تقرير PDF كل يوم أحد." },
-];
-
-function fmtInterval(s: number) {
-  if (s < 60) return `${s} ث`;
-  if (s < 3600) return `${Math.round(s / 60)} د`;
-  if (s < 86400) return `${Math.round(s / 3600)} س`;
-  return `${Math.round(s / 86400)} ي`;
+// حرف الدور: G / M / E / D (افتراضي)
+function roleLetter(role: string): string {
+  const r = role.toLowerCase();
+  if (r === "general-manager") return "G";
+  if (r === "manager") return "M";
+  if (r === "employee") return "E";
+  if (r === "supervisor") return "S";
+  if (r.includes("security")) return "X";
+  if (r.includes("monitor")) return "N";
+  if (r.includes("infra")) return "I";
+  if (r.includes("backup") || r.includes("report")) return "B";
+  if (r.includes("coord") || r.includes("mesh") || r.includes("site")) return "C";
+  return "D";
 }
 
-function statusStyle(s: Status) {
-  if (s === "running") return { dot: "#22d3ee", label: "يعمل", ring: "#22d3ee" };
-  if (s === "stopped") return { dot: "#64748b", label: "متوقف", ring: "#64748b" };
-  return { dot: "#fb7185", label: "خطأ", ring: "#fb7185" };
-}
+const ROLE_COLOR: Record<string, string> = {
+  G: "#f59e0b", M: "#a78bfa", E: "#38bdf8", S: "#22d3ee",
+  X: "#fb7185", N: "#22d3ee", I: "#38bdf8", B: "#34d399", C: "#f472b6", D: "#94a3b8",
+};
 
 function AgentsPage() {
-  const [agents, setAgents] = useState<Agent[]>(INITIAL);
+  const { data: agents } = useSuspenseQuery(catalogQO);
+  const qc = useQueryClient();
+  const toggleOne = useServerFn(setAgentActive);
+  const toggleAll = useServerFn(setAllAgentsActive);
+
   const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<"all" | Status>("all");
-  const [loading, setLoading] = useState<string | null>(null);
-  const [logs, setLogs] = useState<{ t: string; msg: string; hex: string }[]>([
-    { t: "12:31:15", msg: "المشرف الأعلى: كل الوكلاء تحت السيطرة", hex: "#fbbf24" },
-    { t: "12:31:00", msg: "حارس الجدار: حظر IP 41.92.10.44", hex: "#fb7185" },
-    { t: "12:30:45", msg: "مراقب التوفر: 127 موقع سليم", hex: "#22d3ee" },
-    { t: "12:29:30", msg: "التوسع الذاتي: زيادة نسخ souk.hn إلى 4", hex: "#38bdf8" },
-    { t: "12:00:00", msg: "النسخ الاحتياطي: تم رفع 428MB إلى S3", hex: "#34d399" },
-  ]);
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [page, setPage] = useState(0);
+  const pageSize = 50;
 
-  // بث لحظي للنشاط (محاكاة)
-  useEffect(() => {
-    const id = setInterval(() => {
-      setAgents((prev) =>
-        prev.map((a) =>
-          a.status === "running"
-            ? { ...a, cpu: Math.max(1, Math.min(95, a.cpu + (Math.random() * 6 - 3))), ram: Math.max(1, Math.min(95, a.ram + (Math.random() * 4 - 2))), tasks: a.tasks + Math.round(Math.random() * 3) }
-            : a
-        )
-      );
-    }, 1500);
-    return () => clearInterval(id);
-  }, []);
-
-  const stats = useMemo(() => {
-    const running = agents.filter((a) => a.status === "running").length;
-    const stopped = agents.filter((a) => a.status === "stopped").length;
-    const errors  = agents.filter((a) => a.status === "error").length;
-    const tasks   = agents.reduce((s, a) => s + a.tasks, 0);
-    return { total: agents.length, running, stopped, errors, tasks };
+  const rows = useMemo(() => {
+    // ترقيم داخل كل دور
+    const counters: Record<string, number> = {};
+    return (agents as AgentRow[]).map((a) => {
+      const L = roleLetter(a.role);
+      counters[L] = (counters[L] ?? 0) + 1;
+      return { ...a, displayId: `${L}${String(counters[L]).padStart(6, "0")}` };
+    });
   }, [agents]);
 
-  const filtered = useMemo(
-    () =>
-      agents.filter((a) => {
-        const okS = filter === "all" ? true : a.status === filter;
-        const q = query.trim().toLowerCase();
-        const okQ = !q || a.name.toLowerCase().includes(q) || a.nameAr.includes(query.trim());
-        return okS && okQ;
-      }),
-    [agents, filter, query]
-  );
+  const roles = useMemo(() => Array.from(new Set(rows.map((r) => r.role))).sort(), [rows]);
 
-  function pushLog(msg: string, hex: string) {
-    const t = new Date().toLocaleTimeString("ar-EG", { hour12: false });
-    setLogs((l) => [{ t, msg, hex }, ...l].slice(0, 40));
-  }
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return rows.filter((r) => {
+      if (roleFilter !== "all" && r.role !== roleFilter) return false;
+      if (statusFilter === "active" && !r.is_active) return false;
+      if (statusFilter === "inactive" && r.is_active) return false;
+      if (!q) return true;
+      return (
+        r.name_ar.includes(query.trim()) ||
+        r.slug.toLowerCase().includes(q) ||
+        r.role.toLowerCase().includes(q) ||
+        r.displayId.toLowerCase().includes(q)
+      );
+    });
+  }, [rows, query, roleFilter, statusFilter]);
 
-  async function act(id: string, action: "start" | "stop" | "restart" | "run") {
-    setLoading(id + action);
-    await new Promise((r) => setTimeout(r, 500));
-    setAgents((prev) =>
-      prev.map((a) => {
-        if (a.id !== id) return a;
-        const now = new Date().toLocaleTimeString("ar-EG", { hour12: false });
-        if (action === "start")   { pushLog(`▶️ تشغيل ${a.nameAr}`, a.hex);        return { ...a, status: "running", lastRun: now }; }
-        if (action === "stop")    { pushLog(`⏹ إيقاف ${a.nameAr}`, "#64748b");   return { ...a, status: "stopped", cpu: 0, ram: 0 }; }
-        if (action === "restart") { pushLog(`🔄 إعادة تشغيل ${a.nameAr}`, a.hex); return { ...a, status: "running", lastRun: now }; }
-        pushLog(`⚡ تنفيذ فوري: ${a.nameAr}`, a.hex);
-        return { ...a, tasks: a.tasks + 1, lastRun: now };
-      })
-    );
-    setLoading(null);
-  }
+  const pageRows = filtered.slice(page * pageSize, (page + 1) * pageSize);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
 
-  async function bulk(action: "start" | "stop") {
-    for (const a of agents) {
-      if (action === "start" && a.status !== "running") await act(a.id, "start");
-      if (action === "stop"  && a.status === "running") await act(a.id, "stop");
-    }
-  }
+  const stats = useMemo(() => {
+    const active = rows.filter((r) => r.is_active).length;
+    return { total: rows.length, active, inactive: rows.length - active };
+  }, [rows]);
+
+  const mToggle = useMutation({
+    mutationFn: (v: { id: string; is_active: boolean }) => toggleOne({ data: v }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["agents_catalog"] }),
+  });
+
+  const mBulk = useMutation({
+    mutationFn: (v: { is_active: boolean; role?: string }) => toggleAll({ data: v }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["agents_catalog"] }),
+  });
 
   return (
     <div className="space-y-6">
       {/* ترويسة */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-display font-black">غرفة قيادة الوكلاء</h1>
-          <p className="text-sm text-muted-foreground mt-1">تحكم مطلق: تشغيل، إيقاف، جدولة، وتنفيذ فوري لكل وكيل في المنصة.</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            جدول شامل لجميع الوكلاء ({stats.total.toLocaleString("en-US")}) — نشِط: {stats.active} · متوقف: {stats.inactive}
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => bulk("start")} className="px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2"
-                  style={{ background: "linear-gradient(135deg,#22d3ee33,#22d3ee11)", border: "1px solid #22d3ee55", color: "#a5f3fc", boxShadow: "0 0 20px #22d3ee33" }}>
-            <Power className="w-4 h-4" /> تشغيل الكل
+          <button
+            onClick={() => mBulk.mutate({ is_active: true, role: roleFilter === "all" ? undefined : roleFilter })}
+            disabled={mBulk.isPending}
+            className="px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
+            style={{ background: "linear-gradient(135deg,#22d3ee33,#22d3ee11)", border: "1px solid #22d3ee55", color: "#a5f3fc", boxShadow: "0 0 20px #22d3ee33" }}
+          >
+            <Power className="w-4 h-4" /> تفعيل الجميع{roleFilter !== "all" ? ` (${roleFilter})` : ""}
           </button>
-          <button onClick={() => bulk("stop")} className="px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2"
-                  style={{ background: "linear-gradient(135deg,#fb718533,#fb718511)", border: "1px solid #fb718555", color: "#fecdd3", boxShadow: "0 0 20px #fb718533" }}>
-            <PowerOff className="w-4 h-4" /> إيقاف الكل
+          <button
+            onClick={() => mBulk.mutate({ is_active: false, role: roleFilter === "all" ? undefined : roleFilter })}
+            disabled={mBulk.isPending}
+            className="px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
+            style={{ background: "linear-gradient(135deg,#fb718533,#fb718511)", border: "1px solid #fb718555", color: "#fecdd3" }}
+          >
+            <PowerOff className="w-4 h-4" /> إيقاف الجميع
           </button>
         </div>
       </div>
 
-      {/* إحصائيات */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      {/* بطاقات */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: "إجمالي الوكلاء", value: stats.total,   hex: "#a78bfa", Icon: Bot },
-          { label: "قيد التشغيل",   value: stats.running, hex: "#22d3ee", Icon: Activity },
-          { label: "متوقف",         value: stats.stopped, hex: "#64748b", Icon: Square },
-          { label: "أخطاء",         value: stats.errors,  hex: "#fb7185", Icon: AlertCircle },
-          { label: "مهام منفذة",    value: stats.tasks.toLocaleString("en-US"), hex: "#34d399", Icon: CheckCircle2 },
+          { label: "إجمالي الوكلاء", value: stats.total, hex: "#a78bfa", Icon: Bot },
+          { label: "نشِط", value: stats.active, hex: "#22d3ee", Icon: CheckCircle2 },
+          { label: "متوقف", value: stats.inactive, hex: "#64748b", Icon: XCircle },
+          { label: "الأدوار المميزة", value: roles.length, hex: "#f59e0b", Icon: Zap },
         ].map((s) => (
           <div key={s.label} className="relative overflow-hidden rounded-2xl p-4"
-               style={{ background: "linear-gradient(180deg,rgba(15,23,42,0.9),rgba(2,6,23,0.85))", border: `1px solid ${s.hex}33`, boxShadow: `0 0 0 1px ${s.hex}0d, 0 12px 40px -20px ${s.hex}55` }}>
-            <div className="absolute -top-8 -left-8 w-24 h-24 rounded-full opacity-40 blur-2xl" style={{ background: s.hex }} />
-            <div className="relative flex items-center justify-between">
+               style={{ background: "linear-gradient(180deg,rgba(15,23,42,0.9),rgba(2,6,23,0.85))", border: `1px solid ${s.hex}33` }}>
+            <div className="flex items-center justify-between">
               <div>
                 <div className="text-[11px] text-slate-400">{s.label}</div>
-                <div className="text-2xl font-display font-black text-white mt-1">{s.value}</div>
+                <div className="text-2xl font-display font-black text-white mt-1">{s.value.toLocaleString("en-US")}</div>
               </div>
               <div className="w-10 h-10 rounded-xl grid place-items-center"
-                   style={{ background: `radial-gradient(circle at 30% 30%, ${s.hex}55, ${s.hex}11)`, border: `1px solid ${s.hex}66`, boxShadow: `0 0 14px ${s.hex}55` }}>
-                <s.Icon className="w-4 h-4" style={{ color: s.hex, filter: `drop-shadow(0 0 6px ${s.hex})` }} />
+                   style={{ background: `${s.hex}22`, border: `1px solid ${s.hex}55` }}>
+                <s.Icon className="w-4 h-4" style={{ color: s.hex }} />
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* شريط بحث + فلترة */}
+      {/* فلاتر */}
       <div className="panel p-3 flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[220px]">
+        <div className="relative flex-1 min-w-[240px]">
           <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)}
-                 placeholder="ابحث عن وكيل بالاسم..."
-                 className="w-full bg-black/30 border border-white/10 rounded-lg pr-9 pl-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-neon/40" />
+          <input
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setPage(0); }}
+            placeholder="بحث بالمعرّف، الاسم، الدور..."
+            className="w-full bg-black/30 border border-white/10 rounded-lg pr-9 pl-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-400/40"
+          />
+        </div>
+        <select value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value); setPage(0); }}
+                className="bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm">
+          <option value="all">كل الأدوار</option>
+          {roles.map((r) => <option key={r} value={r}>{r}</option>)}
+        </select>
+        <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value as any); setPage(0); }}
+                className="bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-sm">
+          <option value="all">كل الحالات</option>
+          <option value="active">نشِط</option>
+          <option value="inactive">متوقف</option>
+        </select>
+      </div>
+
+      {/* الجدول */}
+      <div className="panel overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-right text-[11px] uppercase tracking-wider text-slate-400 border-b border-white/10">
+              <th className="py-3 px-3 font-semibold">المعرّف</th>
+              <th className="py-3 px-3 font-semibold">الوكيل</th>
+              <th className="py-3 px-3 font-semibold">المهنة / الدور</th>
+              <th className="py-3 px-3 font-semibold">التكرار</th>
+              <th className="py-3 px-3 font-semibold">الوصف</th>
+              <th className="py-3 px-3 font-semibold">الحالة</th>
+              <th className="py-3 px-3 font-semibold text-center">إجراء</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pageRows.map((r) => {
+              const L = roleLetter(r.role);
+              const color = ROLE_COLOR[L] ?? "#94a3b8";
+              return (
+                <tr key={r.id} className="border-b border-white/5 hover:bg-white/[0.02]">
+                  <td className="py-2.5 px-3 font-mono text-xs">
+                    <span className="px-2 py-1 rounded-md" style={{ background: `${color}18`, color, border: `1px solid ${color}44` }}>
+                      {r.displayId}
+                    </span>
+                  </td>
+                  <td className="py-2.5 px-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{r.emoji ?? "🤖"}</span>
+                      <div>
+                        <div className="text-white font-semibold leading-tight">{r.name_ar}</div>
+                        <div className="text-[10px] text-slate-500 font-mono">{r.slug}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-2.5 px-3 text-slate-300">{r.role}</td>
+                  <td className="py-2.5 px-3 text-slate-400 text-xs">{r.frequency ?? "—"}</td>
+                  <td className="py-2.5 px-3 text-slate-400 text-xs max-w-[320px] truncate" title={r.description ?? ""}>
+                    {r.description ?? "—"}
+                  </td>
+                  <td className="py-2.5 px-3">
+                    {r.is_active ? (
+                      <span className="inline-flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-full"
+                            style={{ background: "#22d3ee18", color: "#22d3ee", border: "1px solid #22d3ee55" }}>
+                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" /> نشِط
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-full text-slate-400 border border-white/10">
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-500" /> متوقف
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-2.5 px-3 text-center">
+                    <button
+                      onClick={() => mToggle.mutate({ id: r.id, is_active: !r.is_active })}
+                      disabled={mToggle.isPending}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"
+                      style={r.is_active
+                        ? { background: "#fb718522", color: "#fecdd3", border: "1px solid #fb718555" }
+                        : { background: "#22d3ee22", color: "#a5f3fc", border: "1px solid #22d3ee55" }}
+                    >
+                      {r.is_active ? "إيقاف" : "تفعيل"}
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+            {pageRows.length === 0 && (
+              <tr>
+                <td colSpan={7} className="py-10 text-center text-slate-500">لا نتائج مطابقة.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ترقيم */}
+      <div className="flex items-center justify-between text-xs text-slate-400">
+        <div>
+          عرض {pageRows.length ? page * pageSize + 1 : 0}–{page * pageSize + pageRows.length} من {filtered.length.toLocaleString("en-US")}
         </div>
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-muted-foreground" />
-          {(["all", "running", "stopped", "error"] as const).map((f) => (
-            <button key={f} onClick={() => setFilter(f)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
-                      filter === f ? "text-white" : "text-muted-foreground hover:text-white"
-                    }`}
-                    style={filter === f
-                      ? { borderColor: "#22d3ee88", background: "#22d3ee22", boxShadow: "0 0 12px #22d3ee55" }
-                      : { borderColor: "rgba(255,255,255,0.08)" }}>
-              {f === "all" ? "الكل" : f === "running" ? "يعمل" : f === "stopped" ? "متوقف" : "خطأ"}
-            </button>
-          ))}
+          <button onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0}
+                  className="px-3 py-1.5 rounded-lg border border-white/10 disabled:opacity-40">السابق</button>
+          <span className="px-2">صفحة {page + 1} / {totalPages}</span>
+          <button onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
+                  className="px-3 py-1.5 rounded-lg border border-white/10 disabled:opacity-40">التالي</button>
         </div>
       </div>
 
-      {/* الشبكة: وكلاء + سجل حي */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filtered.map((a) => {
-            const st = statusStyle(a.status);
-            const Icon = a.icon;
-            const cat = CAT_META[a.category];
-            const isLoad = (k: string) => loading === a.id + k;
-            return (
-              <div key={a.id} className="relative overflow-hidden rounded-2xl p-5 group transition hover:-translate-y-0.5"
-                   style={{ background: "linear-gradient(180deg,rgba(15,23,42,0.92),rgba(2,6,23,0.88))",
-                            border: `1px solid ${a.hex}33`,
-                            boxShadow: `0 0 0 1px ${a.hex}0d, 0 20px 60px -30px ${a.hex}66` }}>
-                <div className="absolute -top-16 -left-16 w-40 h-40 rounded-full opacity-30 blur-3xl" style={{ background: a.hex }} />
-
-                <div className="relative flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl grid place-items-center"
-                         style={{ background: `radial-gradient(circle at 30% 30%, ${a.hex}66, ${a.hex}11)`,
-                                  border: `1px solid ${a.hex}66`,
-                                  boxShadow: `0 0 18px ${a.hex}66, inset 0 0 12px ${a.hex}33` }}>
-                      <Icon className="w-5 h-5" style={{ color: a.hex, filter: `drop-shadow(0 0 6px ${a.hex})` }} />
-                    </div>
-                    <div>
-                      <div className="text-base font-bold text-white leading-tight">{a.nameAr}</div>
-                      <div className="text-[11px] text-muted-foreground">{a.name}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-                          style={{ background: `${cat.hex}22`, color: cat.hex, border: `1px solid ${cat.hex}55` }}>
-                      {cat.label}
-                    </span>
-                    <span className="flex items-center gap-1.5 text-[11px] font-semibold px-2 py-1 rounded-full"
-                          style={{ background: `${st.dot}18`, color: st.dot, border: `1px solid ${st.ring}55` }}>
-                      <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: st.dot, boxShadow: `0 0 8px ${st.dot}` }} />
-                      {st.label}
-                    </span>
-                  </div>
-                </div>
-
-                <p className="relative text-xs text-slate-400 mt-3 leading-relaxed">{a.desc}</p>
-
-                {/* metrics */}
-                <div className="relative grid grid-cols-4 gap-2 mt-4 text-[11px]">
-                  <MetricPill Icon={Timer} label="التكرار" value={fmtInterval(a.interval)} hex="#a78bfa" />
-                  <MetricPill Icon={Cpu} label="CPU" value={`${a.cpu.toFixed(0)}%`} hex="#22d3ee" />
-                  <MetricPill Icon={MemoryStick} label="RAM" value={`${a.ram.toFixed(0)}%`} hex="#38bdf8" />
-                  <MetricPill Icon={CheckCircle2} label="مهام" value={a.tasks.toLocaleString("en-US")} hex="#34d399" />
-                </div>
-
-                <div className="relative text-[10px] text-muted-foreground mt-3">
-                  آخر تشغيل: <span className="text-slate-300">{a.lastRun}</span>
-                </div>
-
-                {/* actions */}
-                <div className="relative grid grid-cols-4 gap-2 mt-4">
-                  <ActionBtn onClick={() => act(a.id, "start")}   disabled={a.status === "running" || isLoad("start")}   hex="#22d3ee" Icon={Play}     label="تشغيل" />
-                  <ActionBtn onClick={() => act(a.id, "stop")}    disabled={a.status !== "running" || isLoad("stop")}    hex="#fb7185" Icon={Square}   label="إيقاف" />
-                  <ActionBtn onClick={() => act(a.id, "restart")} disabled={isLoad("restart")}                            hex="#fbbf24" Icon={RotateCw} label="إعادة" />
-                  <ActionBtn onClick={() => act(a.id, "run")}     disabled={isLoad("run")}                                hex="#a78bfa" Icon={Zap}      label="فوري" />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* سجل حي */}
-        <div className="panel p-5 flex flex-col min-h-[420px]">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-cyan-neon animate-pulse" style={{ boxShadow: "0 0 8px #22d3ee" }} />
-              <h3 className="font-bold">السجل الحي</h3>
-            </div>
-            <Settings2 className="w-4 h-4 text-muted-foreground" />
-          </div>
-          <div className="flex-1 overflow-y-auto space-y-2 pr-1 font-mono text-[11px] leading-relaxed">
-            {logs.map((l, i) => (
-              <div key={i} className="flex gap-2 items-start p-2 rounded-lg bg-black/40 border border-white/5">
-                <span className="text-slate-500 shrink-0">{l.t}</span>
-                <span className="w-1.5 h-1.5 mt-1.5 rounded-full shrink-0" style={{ background: l.hex, boxShadow: `0 0 6px ${l.hex}` }} />
-                <span className="text-slate-200">{l.msg}</span>
-              </div>
-            ))}
+      {/* شريط ربط المواقع بالبريد */}
+      <div className="panel p-4 flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <div className="text-sm font-bold text-white">🌐 ربط المواقع بالبريد</div>
+          <div className="text-xs text-slate-400 mt-1">
+            كل موقع مربوط بحساب بريد يشغّله ويُرسِل ويستقبل نيابةً عنه — من هذا الموقع كقلب مركزي.
           </div>
         </div>
+        <Link to="/sites" className="px-4 py-2 rounded-xl text-sm font-semibold"
+              style={{ background: "#a78bfa22", color: "#ddd6fe", border: "1px solid #a78bfa55" }}>
+          إدارة المواقع والبريد ←
+        </Link>
       </div>
     </div>
-  );
-}
-
-function MetricPill({ Icon, label, value, hex }: { Icon: any; label: string; value: string; hex: string }) {
-  return (
-    <div className="rounded-lg px-2 py-1.5 flex flex-col items-center justify-center"
-         style={{ background: `${hex}0e`, border: `1px solid ${hex}33` }}>
-      <div className="flex items-center gap-1 text-[9px] text-slate-400">
-        <Icon className="w-3 h-3" style={{ color: hex }} />
-        {label}
-      </div>
-      <div className="text-[12px] font-bold text-white">{value}</div>
-    </div>
-  );
-}
-
-function ActionBtn({ onClick, disabled, hex, Icon, label }: { onClick: () => void; disabled?: boolean; hex: string; Icon: any; label: string }) {
-  return (
-    <button onClick={onClick} disabled={disabled}
-      className="flex items-center justify-center gap-1 py-2 rounded-lg text-[11px] font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed hover:-translate-y-0.5"
-      style={{ background: `linear-gradient(135deg, ${hex}26, ${hex}0a)`, border: `1px solid ${hex}55`, color: hex, boxShadow: `0 0 14px ${hex}22` }}>
-      <Icon className="w-3.5 h-3.5" />
-      {label}
-    </button>
   );
 }
