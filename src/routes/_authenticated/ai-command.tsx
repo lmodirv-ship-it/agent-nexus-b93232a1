@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Sparkles, Send, Mic, Zap, Bot, Database, Shield, HardDrive, RotateCw } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 
-export const Route = createFileRoute("/ai-command")({
+export const Route = createFileRoute("/_authenticated/ai-command")({
   head: () => ({ meta: [{ title: "AI Command Center — SUPER ADMIN" }, { name: "description", content: "أوامر ذكية لإدارة المنصة بالكامل." }] }),
   component: AICommandPage,
 });

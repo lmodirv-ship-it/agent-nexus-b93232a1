@@ -5,7 +5,7 @@ import { PageHeader, NeonButton, StatusPill } from "@/components/dashboard/PageH
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { MOCK_SITES, type Site, type SiteStatus } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/sites")({
+export const Route = createFileRoute("/_authenticated/sites")({
   head: () => ({ meta: [{ title: "المواقع — SUPER ADMIN" }, { name: "description", content: "إدارة جميع المواقع من مكان واحد." }] }),
   component: SitesPage,
 });

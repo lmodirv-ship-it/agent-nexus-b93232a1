@@ -5,7 +5,7 @@ import { PageHeader, NeonButton, StatusPill } from "@/components/dashboard/PageH
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { MOCK_STORAGE, type StorageItem } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/storage")({
+export const Route = createFileRoute("/_authenticated/storage")({
   head: () => ({ meta: [{ title: "التخزين السحابي — SUPER ADMIN" }, { name: "description", content: "إدارة ملفات ومجلدات التخزين السحابي." }] }),
   component: StoragePage,
 });

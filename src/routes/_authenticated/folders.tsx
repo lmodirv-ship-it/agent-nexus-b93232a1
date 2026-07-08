@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { FolderOpen, Users, Lock, Globe, Plus } from "lucide-react";
 import { PageHeader, NeonButton } from "@/components/dashboard/PageHeader";
 
-export const Route = createFileRoute("/folders")({
+export const Route = createFileRoute("/_authenticated/folders")({
   head: () => ({ meta: [{ title: "المجلدات العامة — SUPER ADMIN" }, { name: "description", content: "المجلدات المشتركة بين المواقع." }] }),
   component: FoldersPage,
 });

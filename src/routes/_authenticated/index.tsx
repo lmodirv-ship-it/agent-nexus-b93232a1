@@ -20,7 +20,7 @@ const statsQ = queryOptions({ queryKey: ["stats"], queryFn: () => getDashboardSt
 const notifQ = queryOptions({ queryKey: ["notifications"], queryFn: () => getNotifications() });
 const actQ = queryOptions({ queryKey: ["activity"], queryFn: () => getActivity() });
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   loader: ({ context }) => Promise.all([
     context.queryClient.ensureQueryData(statsQ),
     context.queryClient.ensureQueryData(notifQ),

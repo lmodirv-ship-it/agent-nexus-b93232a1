@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Bot, ArrowRight, Play, Square, RotateCw, Zap, Activity, Terminal } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 
-export const Route = createFileRoute("/agents/$agentId")({
+export const Route = createFileRoute("/_authenticated/agents/$agentId")({
   head: ({ params }) => ({
     meta: [
       { title: `الوكيل ${params.agentId} — SUPER ADMIN` },

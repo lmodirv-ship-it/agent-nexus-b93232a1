@@ -5,7 +5,7 @@ import { PageHeader, StatusPill } from "@/components/dashboard/PageHeader";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { MOCK_ATTACKS, ATTACK_COORDS, type AttackAttempt } from "@/lib/mock-data";
 
-export const Route = createFileRoute("/security/attempts")({
+export const Route = createFileRoute("/_authenticated/security/attempts")({
   head: () => ({ meta: [{ title: "محاولات الاختراق — SUPER ADMIN" }, { name: "description", content: "سجل محاولات الاختراق مع خريطة IPs." }] }),
   component: AttemptsPage,
 });

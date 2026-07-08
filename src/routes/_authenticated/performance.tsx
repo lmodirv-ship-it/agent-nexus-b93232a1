@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Activity, Cpu, MemoryStick, Network, Timer } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 
-export const Route = createFileRoute("/performance")({
+export const Route = createFileRoute("/_authenticated/performance")({
   head: () => ({ meta: [{ title: "مراقبة الأداء — SUPER ADMIN" }, { name: "description", content: "مراقبة CPU/RAM/الشبكة والأداء لحظياً." }] }),
   component: PerformancePage,
 });
