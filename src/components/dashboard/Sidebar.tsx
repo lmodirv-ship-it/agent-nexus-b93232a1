@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Globe, Database, HardDrive, Shield, Sparkles,
   Bot, Settings, Activity, Cloud, Key, LogIn, FileArchive, FolderOpen,
-  Crown, ScrollText,
+  Crown, ScrollText, Network,
 } from "lucide-react";
 
 const groups = [
@@ -14,6 +14,7 @@ const groups = [
     label: "إدارة المواقع",
     items: [
       { to: "/sites", label: "جميع المواقع", icon: Globe, badge: "127" },
+      { to: "/services", label: "شبكة الخدمات", icon: Network, badge: null },
     ],
   },
   {
