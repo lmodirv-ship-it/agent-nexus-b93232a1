@@ -158,6 +158,105 @@ export type Database = {
         }
         Relationships: []
       }
+      api_keys: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          created_by: string | null
+          hashed_secret: string
+          id: string
+          label: string
+          last_used_at: string | null
+          prefix: string
+          scopes: string[] | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          hashed_secret: string
+          id?: string
+          label: string
+          last_used_at?: string | null
+          prefix: string
+          scopes?: string[] | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          created_by?: string | null
+          hashed_secret?: string
+          id?: string
+          label?: string
+          last_used_at?: string | null
+          prefix?: string
+          scopes?: string[] | null
+        }
+        Relationships: []
+      }
+      attack_attempts: {
+        Row: {
+          blocked: boolean | null
+          country: string | null
+          created_at: string
+          id: string
+          ip: string
+          kind: string | null
+          target: string | null
+        }
+        Insert: {
+          blocked?: boolean | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          ip: string
+          kind?: string | null
+          target?: string | null
+        }
+        Update: {
+          blocked?: boolean | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          ip?: string
+          kind?: string | null
+          target?: string | null
+        }
+        Relationships: []
+      }
+      audit_log: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          created_at: string
+          details: Json | null
+          id: string
+          ip: string | null
+          target: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip?: string | null
+          target?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip?: string | null
+          target?: string | null
+        }
+        Relationships: []
+      }
       backups: {
         Row: {
           created_at: string | null
@@ -189,6 +288,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      clients: {
+        Row: {
+          company: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       databases_registry: {
         Row: {
@@ -249,6 +387,33 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       security_events: {
         Row: {
           created_at: string | null
@@ -273,8 +438,133 @@ export type Database = {
         }
         Relationships: []
       }
+      service_call_logs: {
+        Row: {
+          created_at: string
+          endpoint: string | null
+          id: string
+          provider_service_id: string | null
+          response_code: number | null
+          response_time_ms: number | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          endpoint?: string | null
+          id?: string
+          provider_service_id?: string | null
+          response_code?: number | null
+          response_time_ms?: number | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          endpoint?: string | null
+          id?: string
+          provider_service_id?: string | null
+          response_code?: number | null
+          response_time_ms?: number | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_call_logs_provider_service_id_fkey"
+            columns: ["provider_service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_dependencies: {
+        Row: {
+          consumer_site_id: string | null
+          created_at: string
+          id: string
+          provider_service_id: string | null
+        }
+        Insert: {
+          consumer_site_id?: string | null
+          created_at?: string
+          id?: string
+          provider_service_id?: string | null
+        }
+        Update: {
+          consumer_site_id?: string | null
+          created_at?: string
+          id?: string
+          provider_service_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_dependencies_consumer_site_id_fkey"
+            columns: ["consumer_site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_dependencies_provider_service_id_fkey"
+            columns: ["provider_service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          calls_today: number | null
+          created_at: string
+          endpoint_url: string | null
+          health: string
+          id: string
+          is_public: boolean | null
+          name: string
+          rate_limit: number | null
+          site_id: string | null
+          updated_at: string
+          version: string | null
+        }
+        Insert: {
+          calls_today?: number | null
+          created_at?: string
+          endpoint_url?: string | null
+          health?: string
+          id?: string
+          is_public?: boolean | null
+          name: string
+          rate_limit?: number | null
+          site_id?: string | null
+          updated_at?: string
+          version?: string | null
+        }
+        Update: {
+          calls_today?: number | null
+          created_at?: string
+          endpoint_url?: string | null
+          health?: string
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          rate_limit?: number | null
+          site_id?: string | null
+          updated_at?: string
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sites: {
         Row: {
+          client_id: string | null
           created_at: string | null
           db_size_gb: number | null
           domain: string
@@ -282,9 +572,11 @@ export type Database = {
           id: string
           status: string
           storage_gb: number | null
+          updated_at: string
           users_count: number | null
         }
         Insert: {
+          client_id?: string | null
           created_at?: string | null
           db_size_gb?: number | null
           domain: string
@@ -292,9 +584,11 @@ export type Database = {
           id?: string
           status?: string
           storage_gb?: number | null
+          updated_at?: string
           users_count?: number | null
         }
         Update: {
+          client_id?: string | null
           created_at?: string | null
           db_size_gb?: number | null
           domain?: string
@@ -302,9 +596,18 @@ export type Database = {
           id?: string
           status?: string
           storage_gb?: number | null
+          updated_at?: string
           users_count?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sites_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       storage_folders: {
         Row: {
@@ -333,15 +636,44 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      can_write: { Args: { _user_id: string }; Returns: boolean }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_staff: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "owner" | "admin" | "agent" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -468,6 +800,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["owner", "admin", "agent", "viewer"],
+    },
   },
 } as const
