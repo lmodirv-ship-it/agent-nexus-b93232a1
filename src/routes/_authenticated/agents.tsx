@@ -23,7 +23,10 @@ export const Route = createFileRoute("/_authenticated/agents")({
       { name: "description", content: "جدول شامل لكل الوكلاء مع تفعيل جماعي وربط المواقع بالبريد." },
     ],
   }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(catalogQO),
+  loader: ({ context }) => {
+    context.queryClient.ensureQueryData(catalogQO);
+    context.queryClient.ensureQueryData(linksQO);
+  },
   component: AgentsPage,
 });
 

@@ -324,7 +324,7 @@ export const listAgentSiteLinks = createServerFn({ method: "GET" })
       .from("agent_site_links" as any)
       .select("*");
     if (error) throw new Error(error.message);
-    return (data ?? []) as Array<{
+    return ((data ?? []) as unknown) as Array<{
       id: string; agent_id: string; site_id: string;
       status: string; last_sync_at: string | null; note: string | null;
     }>;
