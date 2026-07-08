@@ -2,12 +2,18 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useSuspenseQuery, useMutation, useQueryClient, queryOptions } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Power, PowerOff, Search, Zap, CheckCircle2, XCircle, Bot } from "lucide-react";
-import { getAgentsCatalog, setAgentActive, setAllAgentsActive } from "@/lib/queries.functions";
+import { Power, PowerOff, Search, Zap, CheckCircle2, XCircle, Bot, Link2 } from "lucide-react";
+import { getAgentsCatalog, setAgentActive, setAllAgentsActive, listAgentSiteLinks } from "@/lib/queries.functions";
+import { AgentSitesModal } from "@/components/dashboard/AgentSitesModal";
 
 const catalogQO = queryOptions({
   queryKey: ["agents_catalog"],
   queryFn: () => getAgentsCatalog(),
+});
+
+const linksQO = queryOptions({
+  queryKey: ["agent_site_links"],
+  queryFn: () => listAgentSiteLinks(),
 });
 
 export const Route = createFileRoute("/_authenticated/agents")({

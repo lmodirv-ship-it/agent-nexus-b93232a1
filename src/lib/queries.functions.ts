@@ -315,3 +315,53 @@ export const deleteService = deleteFn("services", "service");
 export const listServiceLogs = listFn("service_call_logs");
 export const listServiceDependencies = listFn("service_dependencies");
 
+
+// ============ Agent <-> Sites Linking ============
+export const listAgentSiteLinks = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("agent_site_links" as any)
+      .select("*");
+    if (error) throw new Error(error.message);
+    return (data ?? []) as Array<{
+      id: string; agent_id: string; site_id: string;
+      status: string; last_sync_at: string | null; note: string | null;
+    }>;
+  });
+
+export const setAgentSiteLinks = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { agent_id: string; site_ids: string[] }) => d)
+  .handler(async ({ data, context }) => {
+    // احذف كل الروابط الحالية لهذا الوكيل ثم أعد الإدراج
+    const del = await context.supabase.from("agent_site_links" as any)
+      .delete().eq("agent_id", data.agent_id);
+    if (del.error) throw new Error(del.error.message);
+    if (data.site_ids.length > 0) {
+      const rows = data.site_ids.map((sid) => ({
+        agent_id: data.agent_id, site_id: sid,
+        status: "linked", last_sync_at: new Date().toISOString(),
+        created_by: context.userId,
+      }));
+      const ins = await context.supabase.from("agent_site_links" as any).insert(rows);
+      if (ins.error) throw new Error(ins.error.message);
+    }
+    await context.supabase.from("audit_log").insert({
+      actor_id: context.userId, action: "agent.link_sites",
+      target: `agents_catalog/${data.agent_id}`,
+      details: { count: data.site_ids.length },
+    });
+    return { ok: true };
+  });
+
+export const setAgentSiteLinkStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; status: string }) => d)
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("agent_site_links" as any)
+      .update({ status: data.status, last_sync_at: new Date().toISOString() })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
