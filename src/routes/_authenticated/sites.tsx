@@ -48,6 +48,13 @@ function SitesPage() {
     qc.invalidateQueries({ queryKey: ["sites"] });
   };
 
+  const handleEmail = async (s: any) => {
+    const email = prompt("بريد الموقع (يشغّله ويرسل ويستقبل نيابةً عنه):", s.email ?? "");
+    if (email === null) return;
+    await upsertSite({ data: { id: s.id, domain: s.domain, email: email.trim() || null } as any });
+    qc.invalidateQueries({ queryKey: ["sites"] });
+  };
+
   const columns: Column<any>[] = [
     { key: "site", header: "الموقع", cell: (s) => {
       const hex = s.icon_color ?? "#22d3ee";
