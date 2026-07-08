@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StorageRouteImport } from './routes/storage'
 import { Route as SitesRouteImport } from './routes/sites'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SecurityRouteImport } from './routes/security'
 import { Route as PerformanceRouteImport } from './routes/performance'
 import { Route as FoldersRouteImport } from './routes/folders'
@@ -38,6 +39,11 @@ const SitesRoute = SitesRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesRoute = ServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SecurityRoute = SecurityRouteImport.update({
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/folders': typeof FoldersRoute
   '/performance': typeof PerformanceRoute
   '/security': typeof SecurityRouteWithChildren
+  '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/sites': typeof SitesRoute
   '/storage': typeof StorageRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/folders': typeof FoldersRoute
   '/performance': typeof PerformanceRoute
   '/security': typeof SecurityRouteWithChildren
+  '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/sites': typeof SitesRoute
   '/storage': typeof StorageRoute
@@ -146,6 +154,7 @@ export interface FileRoutesById {
   '/folders': typeof FoldersRoute
   '/performance': typeof PerformanceRoute
   '/security': typeof SecurityRouteWithChildren
+  '/services': typeof ServicesRoute
   '/settings': typeof SettingsRoute
   '/sites': typeof SitesRoute
   '/storage': typeof StorageRoute
@@ -165,6 +174,7 @@ export interface FileRouteTypes {
     | '/folders'
     | '/performance'
     | '/security'
+    | '/services'
     | '/settings'
     | '/sites'
     | '/storage'
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/folders'
     | '/performance'
     | '/security'
+    | '/services'
     | '/settings'
     | '/sites'
     | '/storage'
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/folders'
     | '/performance'
     | '/security'
+    | '/services'
     | '/settings'
     | '/sites'
     | '/storage'
@@ -217,6 +229,7 @@ export interface RootRouteChildren {
   FoldersRoute: typeof FoldersRoute
   PerformanceRoute: typeof PerformanceRoute
   SecurityRoute: typeof SecurityRouteWithChildren
+  ServicesRoute: typeof ServicesRoute
   SettingsRoute: typeof SettingsRoute
   SitesRoute: typeof SitesRoute
   StorageRoute: typeof StorageRoute
@@ -243,6 +256,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services': {
+      id: '/services'
+      path: '/services'
+      fullPath: '/services'
+      preLoaderRoute: typeof ServicesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/security': {
@@ -367,6 +387,7 @@ const rootRouteChildren: RootRouteChildren = {
   FoldersRoute: FoldersRoute,
   PerformanceRoute: PerformanceRoute,
   SecurityRoute: SecurityRouteWithChildren,
+  ServicesRoute: ServicesRoute,
   SettingsRoute: SettingsRoute,
   SitesRoute: SitesRoute,
   StorageRoute: StorageRoute,
