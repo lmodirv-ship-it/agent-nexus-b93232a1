@@ -63,6 +63,7 @@ const ROLE_COLOR: Record<string, string> = {
 
 function AgentsPage() {
   const { data: agents } = useSuspenseQuery(catalogQO);
+  const { data: links } = useSuspenseQuery(linksQO);
   const qc = useQueryClient();
   const toggleOne = useServerFn(setAgentActive);
   const toggleAll = useServerFn(setAllAgentsActive);
@@ -71,7 +72,15 @@ function AgentsPage() {
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [page, setPage] = useState(0);
+  const [linkModal, setLinkModal] = useState<{ id: string; name: string } | null>(null);
   const pageSize = 50;
+
+  const linkCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const l of links as any[]) m.set(l.agent_id, (m.get(l.agent_id) ?? 0) + 1);
+    return m;
+  }, [links]);
+
 
   const rows = useMemo(() => {
     // ترقيم داخل كل دور
