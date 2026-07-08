@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Globe, Database, HardDrive, Shield, Sparkles,
   Bot, Settings, Activity, Cloud, Key, LogIn, FileArchive, FolderOpen,
-  Crown,
+  Crown, ScrollText,
 } from "lucide-react";
 
 const groups = [
@@ -43,6 +43,12 @@ const groups = [
     items: [
       { to: "/ai-command", label: "AI Command Center", icon: Sparkles, badge: null },
       { to: "/agents", label: "الوكلاء الأذكياء", icon: Bot, badge: "8" },
+    ],
+  },
+  {
+    label: "المراقبة",
+    items: [
+      { to: "/audit", label: "سجل التعديلات", icon: ScrollText, badge: null },
     ],
   },
   {
