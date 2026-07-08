@@ -2,12 +2,18 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useSuspenseQuery, useMutation, useQueryClient, queryOptions } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Power, PowerOff, Search, Zap, CheckCircle2, XCircle, Bot } from "lucide-react";
-import { getAgentsCatalog, setAgentActive, setAllAgentsActive } from "@/lib/queries.functions";
+import { Power, PowerOff, Search, Zap, CheckCircle2, XCircle, Bot, Link2 } from "lucide-react";
+import { getAgentsCatalog, setAgentActive, setAllAgentsActive, listAgentSiteLinks } from "@/lib/queries.functions";
+import { AgentSitesModal } from "@/components/dashboard/AgentSitesModal";
 
 const catalogQO = queryOptions({
   queryKey: ["agents_catalog"],
   queryFn: () => getAgentsCatalog(),
+});
+
+const linksQO = queryOptions({
+  queryKey: ["agent_site_links"],
+  queryFn: () => listAgentSiteLinks(),
 });
 
 export const Route = createFileRoute("/_authenticated/agents")({
@@ -17,7 +23,10 @@ export const Route = createFileRoute("/_authenticated/agents")({
       { name: "description", content: "جدول شامل لكل الوكلاء مع تفعيل جماعي وربط المواقع بالبريد." },
     ],
   }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(catalogQO),
+  loader: ({ context }) => {
+    context.queryClient.ensureQueryData(catalogQO);
+    context.queryClient.ensureQueryData(linksQO);
+  },
   component: AgentsPage,
 });
 
@@ -54,6 +63,7 @@ const ROLE_COLOR: Record<string, string> = {
 
 function AgentsPage() {
   const { data: agents } = useSuspenseQuery(catalogQO);
+  const { data: links } = useSuspenseQuery(linksQO);
   const qc = useQueryClient();
   const toggleOne = useServerFn(setAgentActive);
   const toggleAll = useServerFn(setAllAgentsActive);
@@ -62,7 +72,15 @@ function AgentsPage() {
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [page, setPage] = useState(0);
+  const [linkModal, setLinkModal] = useState<{ id: string; name: string } | null>(null);
   const pageSize = 50;
+
+  const linkCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const l of links as any[]) m.set(l.agent_id, (m.get(l.agent_id) ?? 0) + 1);
+    return m;
+  }, [links]);
+
 
   const rows = useMemo(() => {
     // ترقيم داخل كل دور
@@ -199,6 +217,7 @@ function AgentsPage() {
               <th className="py-3 px-3 font-semibold">التكرار</th>
               <th className="py-3 px-3 font-semibold">الوصف</th>
               <th className="py-3 px-3 font-semibold">الحالة</th>
+              <th className="py-3 px-3 font-semibold text-center">المواقع</th>
               <th className="py-3 px-3 font-semibold text-center">إجراء</th>
             </tr>
           </thead>
@@ -240,6 +259,20 @@ function AgentsPage() {
                     )}
                   </td>
                   <td className="py-2.5 px-3 text-center">
+                    {(() => {
+                      const c = linkCounts.get(r.id) ?? 0;
+                      const hex = c > 0 ? "#22d3ee" : "#64748b";
+                      return (
+                        <button onClick={() => setLinkModal({ id: r.id, name: r.name_ar })}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold"
+                          style={{ background: `${hex}18`, color: hex, border: `1px solid ${hex}55` }}>
+                          <Link2 className="w-3 h-3" />
+                          {c > 0 ? `${c} مربوط` : "ربط"}
+                        </button>
+                      );
+                    })()}
+                  </td>
+                  <td className="py-2.5 px-3 text-center">
                     <button
                       onClick={() => mToggle.mutate({ id: r.id, is_active: !r.is_active })}
                       disabled={mToggle.isPending}
@@ -256,7 +289,7 @@ function AgentsPage() {
             })}
             {pageRows.length === 0 && (
               <tr>
-                <td colSpan={7} className="py-10 text-center text-slate-500">لا نتائج مطابقة.</td>
+                <td colSpan={8} className="py-10 text-center text-slate-500">لا نتائج مطابقة.</td>
               </tr>
             )}
           </tbody>
@@ -290,6 +323,10 @@ function AgentsPage() {
           إدارة المواقع والبريد ←
         </Link>
       </div>
+
+      {linkModal && (
+        <AgentSitesModal agentId={linkModal.id} agentName={linkModal.name} onClose={() => setLinkModal(null)} />
+      )}
     </div>
   );
 }
