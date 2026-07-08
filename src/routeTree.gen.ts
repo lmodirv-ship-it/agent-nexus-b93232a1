@@ -17,6 +17,7 @@ import { Route as PerformanceRouteImport } from './routes/performance'
 import { Route as FoldersRouteImport } from './routes/folders'
 import { Route as DatabasesRouteImport } from './routes/databases'
 import { Route as BackupsRouteImport } from './routes/backups'
+import { Route as AuditRouteImport } from './routes/audit'
 import { Route as AiCommandRouteImport } from './routes/ai-command'
 import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as IndexRouteImport } from './routes/index'
@@ -64,6 +65,11 @@ const BackupsRoute = BackupsRouteImport.update({
   path: '/backups',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuditRoute = AuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AiCommandRoute = AiCommandRouteImport.update({
   id: '/ai-command',
   path: '/ai-command',
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/agents': typeof AgentsRouteWithChildren
   '/ai-command': typeof AiCommandRoute
+  '/audit': typeof AuditRoute
   '/backups': typeof BackupsRoute
   '/databases': typeof DatabasesRoute
   '/folders': typeof FoldersRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/agents': typeof AgentsRouteWithChildren
   '/ai-command': typeof AiCommandRoute
+  '/audit': typeof AuditRoute
   '/backups': typeof BackupsRoute
   '/databases': typeof DatabasesRoute
   '/folders': typeof FoldersRoute
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/agents': typeof AgentsRouteWithChildren
   '/ai-command': typeof AiCommandRoute
+  '/audit': typeof AuditRoute
   '/backups': typeof BackupsRoute
   '/databases': typeof DatabasesRoute
   '/folders': typeof FoldersRoute
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agents'
     | '/ai-command'
+    | '/audit'
     | '/backups'
     | '/databases'
     | '/folders'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agents'
     | '/ai-command'
+    | '/audit'
     | '/backups'
     | '/databases'
     | '/folders'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/'
     | '/agents'
     | '/ai-command'
+    | '/audit'
     | '/backups'
     | '/databases'
     | '/folders'
@@ -199,6 +211,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AgentsRoute: typeof AgentsRouteWithChildren
   AiCommandRoute: typeof AiCommandRoute
+  AuditRoute: typeof AuditRoute
   BackupsRoute: typeof BackupsRoute
   DatabasesRoute: typeof DatabasesRoute
   FoldersRoute: typeof FoldersRoute
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       path: '/backups'
       fullPath: '/backups'
       preLoaderRoute: typeof BackupsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/audit': {
+      id: '/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AuditRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ai-command': {
@@ -341,6 +361,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AgentsRoute: AgentsRouteWithChildren,
   AiCommandRoute: AiCommandRoute,
+  AuditRoute: AuditRoute,
   BackupsRoute: BackupsRoute,
   DatabasesRoute: DatabasesRoute,
   FoldersRoute: FoldersRoute,

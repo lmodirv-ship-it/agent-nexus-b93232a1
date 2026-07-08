@@ -14,6 +14,7 @@ import { BackupCenter } from "@/components/dashboard/BackupCenter";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { AlertsPanel } from "@/components/dashboard/AlertsPanel";
 import { QuickAccess } from "@/components/dashboard/QuickAccess";
+import { LiveSitesStatus } from "@/components/dashboard/LiveSitesStatus";
 
 const statsQ = queryOptions({ queryKey: ["stats"], queryFn: () => getDashboardStats() });
 const notifQ = queryOptions({ queryKey: ["notifications"], queryFn: () => getNotifications() });
@@ -50,6 +51,8 @@ function Dashboard() {
           <SecurityCenter />
         </div>
       </div>
+
+      <LiveSitesStatus />
 
       <div className="grid grid-cols-12 gap-6">
         <div className="col-span-12 lg:col-span-4"><StorageExplorer folders={stats.folders} /></div>
