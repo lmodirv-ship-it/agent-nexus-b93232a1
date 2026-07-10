@@ -19,6 +19,7 @@ import { Route as AuthenticatedSitesRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
 import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
+import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedPerformanceRouteImport } from './routes/_authenticated/performance'
 import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated/inbox'
 import { Route as AuthenticatedHubSdkRouteImport } from './routes/_authenticated/hub-sdk'
@@ -90,6 +91,11 @@ const AuthenticatedServicesRoute = AuthenticatedServicesRouteImport.update({
 const AuthenticatedSecurityRoute = AuthenticatedSecurityRouteImport.update({
   id: '/security',
   path: '/security',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPerformanceRoute =
@@ -234,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/hub-sdk': typeof AuthenticatedHubSdkRoute
   '/inbox': typeof AuthenticatedInboxRoute
   '/performance': typeof AuthenticatedPerformanceRoute
+  '/portal': typeof AuthenticatedPortalRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
   '/services': typeof AuthenticatedServicesRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -267,6 +274,7 @@ export interface FileRoutesByTo {
   '/hub-sdk': typeof AuthenticatedHubSdkRoute
   '/inbox': typeof AuthenticatedInboxRoute
   '/performance': typeof AuthenticatedPerformanceRoute
+  '/portal': typeof AuthenticatedPortalRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
   '/services': typeof AuthenticatedServicesRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -303,6 +311,7 @@ export interface FileRoutesById {
   '/_authenticated/hub-sdk': typeof AuthenticatedHubSdkRoute
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
   '/_authenticated/performance': typeof AuthenticatedPerformanceRoute
+  '/_authenticated/portal': typeof AuthenticatedPortalRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRouteWithChildren
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
@@ -340,6 +349,7 @@ export interface FileRouteTypes {
     | '/hub-sdk'
     | '/inbox'
     | '/performance'
+    | '/portal'
     | '/security'
     | '/services'
     | '/settings'
@@ -373,6 +383,7 @@ export interface FileRouteTypes {
     | '/hub-sdk'
     | '/inbox'
     | '/performance'
+    | '/portal'
     | '/security'
     | '/services'
     | '/settings'
@@ -408,6 +419,7 @@ export interface FileRouteTypes {
     | '/_authenticated/hub-sdk'
     | '/_authenticated/inbox'
     | '/_authenticated/performance'
+    | '/_authenticated/portal'
     | '/_authenticated/security'
     | '/_authenticated/services'
     | '/_authenticated/settings'
@@ -508,6 +520,13 @@ declare module '@tanstack/react-router' {
       path: '/security'
       fullPath: '/security'
       preLoaderRoute: typeof AuthenticatedSecurityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/portal': {
+      id: '/_authenticated/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof AuthenticatedPortalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/performance': {
@@ -714,6 +733,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHubSdkRoute: typeof AuthenticatedHubSdkRoute
   AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
   AuthenticatedPerformanceRoute: typeof AuthenticatedPerformanceRoute
+  AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRouteWithChildren
   AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -737,6 +757,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHubSdkRoute: AuthenticatedHubSdkRoute,
   AuthenticatedInboxRoute: AuthenticatedInboxRoute,
   AuthenticatedPerformanceRoute: AuthenticatedPerformanceRoute,
+  AuthenticatedPortalRoute: AuthenticatedPortalRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRouteWithChildren,
   AuthenticatedServicesRoute: AuthenticatedServicesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
