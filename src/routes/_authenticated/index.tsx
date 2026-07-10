@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { queryOptions } from "@tanstack/react-query";
-import { getDashboardStats, getNotifications, getActivity } from "@/lib/queries.functions";
+import { getDashboardStats, getNotifications, getActivity, getMyRole } from "@/lib/queries.functions";
 import { StatCards } from "@/components/dashboard/StatCards";
 import { SiteGraph } from "@/components/dashboard/SiteGraph";
 import { DbMonitor } from "@/components/dashboard/DbMonitor";
@@ -19,13 +19,18 @@ import { LiveSitesStatus } from "@/components/dashboard/LiveSitesStatus";
 const statsQ = queryOptions({ queryKey: ["stats"], queryFn: () => getDashboardStats() });
 const notifQ = queryOptions({ queryKey: ["notifications"], queryFn: () => getNotifications() });
 const actQ = queryOptions({ queryKey: ["activity"], queryFn: () => getActivity() });
+const meQ = queryOptions({ queryKey: ["me-role"], queryFn: () => getMyRole() });
 
 export const Route = createFileRoute("/_authenticated/")({
-  loader: ({ context }) => Promise.all([
-    context.queryClient.ensureQueryData(statsQ),
-    context.queryClient.ensureQueryData(notifQ),
-    context.queryClient.ensureQueryData(actQ),
-  ]),
+  loader: async ({ context }) => {
+    const me = await context.queryClient.ensureQueryData(meQ);
+    if (!me.isStaff) throw redirect({ to: "/portal" });
+    await Promise.all([
+      context.queryClient.ensureQueryData(statsQ),
+      context.queryClient.ensureQueryData(notifQ),
+      context.queryClient.ensureQueryData(actQ),
+    ]);
+  },
   component: Dashboard,
   errorComponent: ({ error }) => <div className="panel p-6">{error.message}</div>,
   notFoundComponent: () => <div className="panel p-6">لم يوجد</div>,

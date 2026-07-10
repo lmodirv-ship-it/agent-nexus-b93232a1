@@ -13,11 +13,13 @@ import { Route as McpRouteImport } from './routes/mcp'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedStorageRouteImport } from './routes/_authenticated/storage'
 import { Route as AuthenticatedSitesRouteImport } from './routes/_authenticated/sites'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
 import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
+import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedPerformanceRouteImport } from './routes/_authenticated/performance'
 import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated/inbox'
 import { Route as AuthenticatedHubSdkRouteImport } from './routes/_authenticated/hub-sdk'
@@ -61,6 +63,11 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedStorageRoute = AuthenticatedStorageRouteImport.update({
   id: '/storage',
   path: '/storage',
@@ -84,6 +91,11 @@ const AuthenticatedServicesRoute = AuthenticatedServicesRouteImport.update({
 const AuthenticatedSecurityRoute = AuthenticatedSecurityRouteImport.update({
   id: '/security',
   path: '/security',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPerformanceRoute =
@@ -228,11 +240,13 @@ export interface FileRoutesByFullPath {
   '/hub-sdk': typeof AuthenticatedHubSdkRoute
   '/inbox': typeof AuthenticatedInboxRoute
   '/performance': typeof AuthenticatedPerformanceRoute
+  '/portal': typeof AuthenticatedPortalRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
   '/services': typeof AuthenticatedServicesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/sites': typeof AuthenticatedSitesRoute
   '/storage': typeof AuthenticatedStorageRoute
+  '/users': typeof AuthenticatedUsersRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
@@ -260,11 +274,13 @@ export interface FileRoutesByTo {
   '/hub-sdk': typeof AuthenticatedHubSdkRoute
   '/inbox': typeof AuthenticatedInboxRoute
   '/performance': typeof AuthenticatedPerformanceRoute
+  '/portal': typeof AuthenticatedPortalRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
   '/services': typeof AuthenticatedServicesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/sites': typeof AuthenticatedSitesRoute
   '/storage': typeof AuthenticatedStorageRoute
+  '/users': typeof AuthenticatedUsersRoute
   '/': typeof AuthenticatedIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -295,11 +311,13 @@ export interface FileRoutesById {
   '/_authenticated/hub-sdk': typeof AuthenticatedHubSdkRoute
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
   '/_authenticated/performance': typeof AuthenticatedPerformanceRoute
+  '/_authenticated/portal': typeof AuthenticatedPortalRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRouteWithChildren
   '/_authenticated/services': typeof AuthenticatedServicesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/sites': typeof AuthenticatedSitesRoute
   '/_authenticated/storage': typeof AuthenticatedStorageRoute
+  '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -331,11 +349,13 @@ export interface FileRouteTypes {
     | '/hub-sdk'
     | '/inbox'
     | '/performance'
+    | '/portal'
     | '/security'
     | '/services'
     | '/settings'
     | '/sites'
     | '/storage'
+    | '/users'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/agents/$agentId'
@@ -363,11 +383,13 @@ export interface FileRouteTypes {
     | '/hub-sdk'
     | '/inbox'
     | '/performance'
+    | '/portal'
     | '/security'
     | '/services'
     | '/settings'
     | '/sites'
     | '/storage'
+    | '/users'
     | '/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -397,11 +419,13 @@ export interface FileRouteTypes {
     | '/_authenticated/hub-sdk'
     | '/_authenticated/inbox'
     | '/_authenticated/performance'
+    | '/_authenticated/portal'
     | '/_authenticated/security'
     | '/_authenticated/services'
     | '/_authenticated/settings'
     | '/_authenticated/sites'
     | '/_authenticated/storage'
+    | '/_authenticated/users'
     | '/_authenticated/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
@@ -456,6 +480,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/users': {
+      id: '/_authenticated/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof AuthenticatedUsersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/storage': {
       id: '/_authenticated/storage'
       path: '/storage'
@@ -489,6 +520,13 @@ declare module '@tanstack/react-router' {
       path: '/security'
       fullPath: '/security'
       preLoaderRoute: typeof AuthenticatedSecurityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/portal': {
+      id: '/_authenticated/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof AuthenticatedPortalRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/performance': {
@@ -695,11 +733,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHubSdkRoute: typeof AuthenticatedHubSdkRoute
   AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
   AuthenticatedPerformanceRoute: typeof AuthenticatedPerformanceRoute
+  AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRouteWithChildren
   AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSitesRoute: typeof AuthenticatedSitesRoute
   AuthenticatedStorageRoute: typeof AuthenticatedStorageRoute
+  AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
@@ -717,11 +757,13 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHubSdkRoute: AuthenticatedHubSdkRoute,
   AuthenticatedInboxRoute: AuthenticatedInboxRoute,
   AuthenticatedPerformanceRoute: AuthenticatedPerformanceRoute,
+  AuthenticatedPortalRoute: AuthenticatedPortalRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRouteWithChildren,
   AuthenticatedServicesRoute: AuthenticatedServicesRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSitesRoute: AuthenticatedSitesRoute,
   AuthenticatedStorageRoute: AuthenticatedStorageRoute,
+  AuthenticatedUsersRoute: AuthenticatedUsersRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 

@@ -1,8 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { getMyRole } from "@/lib/queries.functions";
 import {
   LayoutDashboard, Globe, Database, HardDrive, Shield, Sparkles,
   Bot, Settings, Activity, Cloud, Key, LogIn, FileArchive, FolderOpen,
   Crown, ScrollText, Network, Users, Radio, Mail, Code2, Link2, BrainCircuit,
+  UserCog, Briefcase,
 } from "lucide-react";
 
 const groups = [
@@ -63,14 +66,37 @@ const groups = [
   {
     label: "الإعدادات",
     items: [
+      { to: "/users", label: "المستخدمون والأدوار", icon: UserCog, badge: "OWNER", ownerOnly: true },
       { to: "/settings", label: "إعدادات النظام", icon: Settings, badge: null },
       { to: "/backups", label: "النسخ الاحتياطي", icon: FileArchive, badge: null },
     ],
   },
 ];
 
+const clientNav = [
+  { label: "بوابة العميل", items: [{ to: "/portal", label: "لوحتي", icon: Briefcase, badge: null }] },
+];
+
 export function Sidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { data: me } = useQuery({
+    queryKey: ["me-role"],
+    queryFn: () => getMyRole(),
+    retry: false,
+    staleTime: 60_000,
+  });
+
+  // Hide sidebar on public/auth routes
+  if (pathname.startsWith("/auth") || pathname.startsWith("/.")) return null;
+
+  const isStaff = !!me?.isStaff;
+  const isOwner = !!me?.isOwner;
+  const visibleGroups = isStaff
+    ? groups
+        .map((g) => ({ ...g, items: g.items.filter((it: any) => !it.ownerOnly || isOwner) }))
+        .filter((g) => g.items.length > 0)
+    : clientNav;
+
   return (
     <aside className="w-64 shrink-0 panel m-3 mr-3 ml-0 p-4 overflow-y-auto max-h-[calc(100vh-1.5rem)] sticky top-3 self-start">
       <div className="flex items-center gap-3 mb-6 px-2">
@@ -78,13 +104,13 @@ export function Sidebar() {
           <Crown className="w-5 h-5 text-background" />
         </div>
         <div>
-          <div className="font-display font-bold text-lg leading-tight">SUPER ADMIN</div>
-          <div className="text-xs text-muted-foreground">Central Database Hub</div>
+          <div className="font-display font-bold text-lg leading-tight">{isStaff ? "SUPER ADMIN" : "بوابة العميل"}</div>
+          <div className="text-xs text-muted-foreground">{isOwner ? "مالك النظام" : isStaff ? "طاقم إداري" : "عميل"}</div>
         </div>
       </div>
 
       <nav className="space-y-5">
-        {groups.map((g) => (
+        {visibleGroups.map((g) => (
           <div key={g.label}>
             <div className="text-[11px] font-bold text-muted-foreground/70 tracking-wider mb-2 px-2 uppercase">
               {g.label}
