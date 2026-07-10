@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Globe, Database, HardDrive, Shield, Sparkles,
   Bot, Settings, Activity, Cloud, Key, LogIn, FileArchive, FolderOpen,
-  Crown, ScrollText, Network, Users, Radio, Mail, Code2, Link2,
+  Crown, ScrollText, Network, Users, Radio, Mail, Code2, Link2, BrainCircuit,
 } from "lucide-react";
 
 const groups = [
@@ -51,6 +51,7 @@ const groups = [
       { to: "/ai-command", label: "AI Command Center", icon: Sparkles, badge: null },
       { to: "/agents", label: "الوكلاء الأذكياء", icon: Bot, badge: "8" },
       { to: "/agent-link", label: "وكلاء الربط", icon: Link2, badge: "LIVE" },
+      { to: "/ai-models", label: "نماذج الذكاء", icon: BrainCircuit, badge: null },
     ],
   },
   {

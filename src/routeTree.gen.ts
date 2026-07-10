@@ -27,6 +27,7 @@ import { Route as AuthenticatedDatabasesRouteImport } from './routes/_authentica
 import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated/clients'
 import { Route as AuthenticatedBackupsRouteImport } from './routes/_authenticated/backups'
 import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
+import { Route as AuthenticatedAiModelsRouteImport } from './routes/_authenticated/ai-models'
 import { Route as AuthenticatedAiCommandRouteImport } from './routes/_authenticated/ai-command'
 import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated/agents'
 import { Route as AuthenticatedAgentLinkRouteImport } from './routes/_authenticated/agent-link'
@@ -131,6 +132,11 @@ const AuthenticatedAuditRoute = AuthenticatedAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAiModelsRoute = AuthenticatedAiModelsRouteImport.update({
+  id: '/ai-models',
+  path: '/ai-models',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAiCommandRoute = AuthenticatedAiCommandRouteImport.update({
   id: '/ai-command',
   path: '/ai-command',
@@ -212,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/agent-link': typeof AuthenticatedAgentLinkRoute
   '/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/ai-command': typeof AuthenticatedAiCommandRoute
+  '/ai-models': typeof AuthenticatedAiModelsRoute
   '/audit': typeof AuthenticatedAuditRoute
   '/backups': typeof AuthenticatedBackupsRoute
   '/clients': typeof AuthenticatedClientsRoute
@@ -243,6 +250,7 @@ export interface FileRoutesByTo {
   '/agent-link': typeof AuthenticatedAgentLinkRoute
   '/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/ai-command': typeof AuthenticatedAiCommandRoute
+  '/ai-models': typeof AuthenticatedAiModelsRoute
   '/audit': typeof AuthenticatedAuditRoute
   '/backups': typeof AuthenticatedBackupsRoute
   '/clients': typeof AuthenticatedClientsRoute
@@ -277,6 +285,7 @@ export interface FileRoutesById {
   '/_authenticated/agent-link': typeof AuthenticatedAgentLinkRoute
   '/_authenticated/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/_authenticated/ai-command': typeof AuthenticatedAiCommandRoute
+  '/_authenticated/ai-models': typeof AuthenticatedAiModelsRoute
   '/_authenticated/audit': typeof AuthenticatedAuditRoute
   '/_authenticated/backups': typeof AuthenticatedBackupsRoute
   '/_authenticated/clients': typeof AuthenticatedClientsRoute
@@ -312,6 +321,7 @@ export interface FileRouteTypes {
     | '/agent-link'
     | '/agents'
     | '/ai-command'
+    | '/ai-models'
     | '/audit'
     | '/backups'
     | '/clients'
@@ -343,6 +353,7 @@ export interface FileRouteTypes {
     | '/agent-link'
     | '/agents'
     | '/ai-command'
+    | '/ai-models'
     | '/audit'
     | '/backups'
     | '/clients'
@@ -376,6 +387,7 @@ export interface FileRouteTypes {
     | '/_authenticated/agent-link'
     | '/_authenticated/agents'
     | '/_authenticated/ai-command'
+    | '/_authenticated/ai-models'
     | '/_authenticated/audit'
     | '/_authenticated/backups'
     | '/_authenticated/clients'
@@ -542,6 +554,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAuditRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/ai-models': {
+      id: '/_authenticated/ai-models'
+      path: '/ai-models'
+      fullPath: '/ai-models'
+      preLoaderRoute: typeof AuthenticatedAiModelsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/ai-command': {
       id: '/_authenticated/ai-command'
       path: '/ai-command'
@@ -666,6 +685,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAgentLinkRoute: typeof AuthenticatedAgentLinkRoute
   AuthenticatedAgentsRoute: typeof AuthenticatedAgentsRouteWithChildren
   AuthenticatedAiCommandRoute: typeof AuthenticatedAiCommandRoute
+  AuthenticatedAiModelsRoute: typeof AuthenticatedAiModelsRoute
   AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
   AuthenticatedBackupsRoute: typeof AuthenticatedBackupsRoute
   AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
@@ -687,6 +707,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAgentLinkRoute: AuthenticatedAgentLinkRoute,
   AuthenticatedAgentsRoute: AuthenticatedAgentsRouteWithChildren,
   AuthenticatedAiCommandRoute: AuthenticatedAiCommandRoute,
+  AuthenticatedAiModelsRoute: AuthenticatedAiModelsRoute,
   AuthenticatedAuditRoute: AuthenticatedAuditRoute,
   AuthenticatedBackupsRoute: AuthenticatedBackupsRoute,
   AuthenticatedClientsRoute: AuthenticatedClientsRoute,
