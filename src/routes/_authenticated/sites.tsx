@@ -6,6 +6,7 @@ import { PageHeader, NeonButton, StatusPill } from "@/components/dashboard/PageH
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { listSites, deleteSite, upsertSite } from "@/lib/queries.functions";
 import { SiteIntegrationModal } from "@/components/dashboard/SiteIntegrationModal";
+import { ExportKeysBanner } from "@/components/dashboard/ExportKeysBanner";
 
 const sitesQ = queryOptions({ queryKey: ["sites"], queryFn: () => listSites() });
 
@@ -105,6 +106,8 @@ function SitesPage() {
     <div>
       <PageHeader icon={Globe} title="إدارة المواقع" subtitle={`${totals.total} موقع · ${totals.online} يعمل · ${totals.users.toLocaleString("en-US")} مستخدم`}
         actions={<NeonButton icon={Plus}>إضافة موقع</NeonButton>} />
+
+      <ExportKeysBanner />
 
       <div className="panel p-3 mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[220px]">
