@@ -1,8 +1,11 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { getMyRole } from "@/lib/queries.functions";
 import {
   LayoutDashboard, Globe, Database, HardDrive, Shield, Sparkles,
   Bot, Settings, Activity, Cloud, Key, LogIn, FileArchive, FolderOpen,
   Crown, ScrollText, Network, Users, Radio, Mail, Code2, Link2, BrainCircuit,
+  UserCog, Briefcase,
 } from "lucide-react";
 
 const groups = [
