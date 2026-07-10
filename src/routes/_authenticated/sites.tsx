@@ -13,7 +13,10 @@ const catsQ = queryOptions({ queryKey: ["site_categories"], queryFn: () => listS
 
 export const Route = createFileRoute("/_authenticated/sites")({
   head: () => ({ meta: [{ title: "المواقع — SUPER ADMIN" }, { name: "description", content: "إدارة جميع المواقع من مكان واحد." }] }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(sitesQ),
+  loader: ({ context }) => Promise.all([
+    context.queryClient.ensureQueryData(sitesQ),
+    context.queryClient.ensureQueryData(catsQ),
+  ]),
   component: SitesPage,
   errorComponent: ({ error }) => <div className="panel p-6">{error.message}</div>,
   notFoundComponent: () => <div className="panel p-6">غير موجود</div>,
