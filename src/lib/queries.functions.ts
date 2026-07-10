@@ -365,3 +365,144 @@ export const setAgentSiteLinkStatus = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ============ HUB: Events / Mail / Site Integration ============
+export const listHubEvents = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("hub_events" as any)
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as unknown) as Array<{
+      id: string; site_id: string | null; agent_id: string | null;
+      direction: "inbound" | "outbound"; type: string; payload: any;
+      status: string; attempts: number; error: string | null;
+      delivered_at: string | null; created_at: string;
+    }>;
+  });
+
+export const getHubStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const sinceIso = new Date(Date.now() - 60_000).toISOString();
+    const [sitesRes, eventsRes, mailRes] = await Promise.all([
+      context.supabase.from("sites").select("id, domain, status, last_heartbeat_at, health"),
+      context.supabase.from("hub_events" as any).select("direction, status, created_at").gte("created_at", sinceIso),
+      context.supabase.from("mail_messages" as any).select("id, read_at").is("read_at", null),
+    ]);
+    const sites = (sitesRes.data ?? []) as any[];
+    const online = sites.filter((s) => {
+      if (!s.last_heartbeat_at) return false;
+      return Date.now() - new Date(s.last_heartbeat_at).getTime() < 60_000;
+    }).length;
+    const events = (eventsRes.data ?? []) as any[];
+    return {
+      sitesTotal: sites.length,
+      sitesOnline: online,
+      eventsPerMinute: events.length,
+      inboundLastMin: events.filter((e) => e.direction === "inbound").length,
+      outboundLastMin: events.filter((e) => e.direction === "outbound").length,
+      failedLastMin: events.filter((e) => e.status === "failed").length,
+      unreadMail: (mailRes.data ?? []).length,
+    };
+  });
+
+export const emitHubEvent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { site_id?: string | null; agent_id?: string | null; type: string; payload?: any; direction?: "inbound" | "outbound" }) => d)
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase.from("hub_events" as any).insert({
+      site_id: data.site_id ?? null,
+      agent_id: data.agent_id ?? null,
+      direction: data.direction ?? "outbound",
+      type: data.type,
+      payload: data.payload ?? {},
+      status: "queued",
+    }).select().single();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+export const rotateSiteApiKey = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { site_id: string }) => d)
+  .handler(async ({ data, context }) => {
+    const rawKey = "hn_" + crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "").slice(0, 8);
+    const secret = crypto.randomUUID().replace(/-/g, "") + crypto.randomUUID().replace(/-/g, "");
+    const enc = new TextEncoder().encode(rawKey);
+    const hashBuf = await crypto.subtle.digest("SHA-256", enc);
+    const keyHash = Array.from(new Uint8Array(hashBuf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    const { error } = await context.supabase.from("sites")
+      .update({ api_key_hash: keyHash, webhook_secret: secret })
+      .eq("id", data.site_id);
+    if (error) throw new Error(error.message);
+    await context.supabase.from("audit_log").insert({
+      actor_id: context.userId, action: "site.rotate_key", target: `sites/${data.site_id}`,
+    });
+    // shown once
+    return { api_key: rawKey, webhook_secret: secret };
+  });
+
+export const updateSiteIntegration = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { site_id: string; webhook_url?: string | null }) => d)
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("sites")
+      .update({ webhook_url: data.webhook_url ?? null })
+      .eq("id", data.site_id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const pingSite = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { site_id: string }) => d)
+  .handler(async ({ data, context }) => {
+    const { data: site } = await context.supabase.from("sites").select("id, webhook_url, webhook_secret").eq("id", data.site_id).single();
+    if (!site?.webhook_url) throw new Error("لا يوجد webhook_url لهذا الموقع");
+    const body = JSON.stringify({ type: "ping", ts: Date.now() });
+    let ok = false; let status = 0; let err: string | null = null;
+    try {
+      const res = await fetch(site.webhook_url, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-hn-signature": site.webhook_secret ?? "" },
+        body,
+      });
+      status = res.status; ok = res.ok;
+    } catch (e: any) { err = e?.message ?? String(e); }
+    await context.supabase.from("hub_events" as any).insert({
+      site_id: data.site_id, direction: "outbound", type: "ping",
+      payload: { status }, status: ok ? "delivered" : "failed", error: err,
+      delivered_at: ok ? new Date().toISOString() : null, attempts: 1,
+    });
+    return { ok, status, error: err };
+  });
+
+export const listMailMessages = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("mail_messages" as any)
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as unknown) as Array<{
+      id: string; site_id: string | null; direction: "inbound" | "outbound";
+      from_addr: string; to_addr: string; subject: string | null; body: string | null;
+      read_at: string | null; created_at: string;
+    }>;
+  });
+
+export const markMailRead = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("mail_messages" as any)
+      .update({ read_at: new Date().toISOString() }).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
