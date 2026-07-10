@@ -35,16 +35,21 @@ export function LiveSitesStatus() {
                    style={{ borderColor: `${hex}44`, boxShadow: `0 0 18px ${hex}18` }}>
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="font-bold truncate">{site.clients?.name ?? site.domain}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="font-bold truncate">{site.clients?.name ?? site.domain}</div>
+                      {site.site_code && <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-cyan-neon">{site.site_code}</span>}
+                    </div>
                     <div className="text-[11px] text-muted-foreground truncate">{site.domain}</div>
+                    {site.role && <div className="text-[10px] text-slate-400 truncate">{site.role}</div>}
                   </div>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap"
                         style={{ background: `${hex}22`, color: hex, border: `1px solid ${hex}55` }}>{label}</span>
                 </div>
                 <div className="mt-3 space-y-1 text-[11px]">
                   <Row k="المستخدمون" v={(site.users_count ?? 0).toLocaleString("ar")} />
-                  <Row k="قاعدة البيانات" v={`${Number(site.db_size_gb ?? 0)} GB`} />
+                  <Row k="قاعدة البيانات" v={site.db_name ?? `${Number(site.db_size_gb ?? 0)} GB`} />
                   <Row k="التخزين" v={`${Number(site.storage_gb ?? 0)} GB`} />
+                  <Row k="النشاط" v={`${Math.round(Number(site.activity_rate ?? 0))}%`} />
                 </div>
               </div>
             );
