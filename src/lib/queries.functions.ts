@@ -263,46 +263,127 @@ export const getAuditLog = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+const PROTECTED_OWNER_EMAILS = ["lmodirv@gmail.com", "info@hnchat.net"];
+const isProtectedEmail = (e?: string | null) => !!e && PROTECTED_OWNER_EMAILS.includes(e.toLowerCase());
+
 export const getMyRole = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data } = await context.supabase.from("user_roles").select("role").eq("user_id", context.userId);
     const roles = (data ?? []).map((r: any) => r.role);
+    const email = (context.claims as any)?.email as string | undefined;
     return {
       userId: context.userId,
+      email,
       roles,
       isStaff: roles.includes("owner") || roles.includes("admin"),
       isOwner: roles.includes("owner"),
+      isAdmin: roles.includes("admin"),
+      isClient: roles.includes("client"),
+      isVisitor: roles.includes("visitor") || roles.length === 0,
+      isProtected: isProtectedEmail(email),
     };
   });
 
 export const listUsers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    // Only staff can list — RLS on profiles enforces this too.
     const [profilesRes, rolesRes] = await Promise.all([
       context.supabase.from("profiles").select("*"),
       context.supabase.from("user_roles").select("*"),
     ]);
     const roles = rolesRes.data ?? [];
-    return (profilesRes.data ?? []).map((p: any) => ({
-      ...p,
-      roles: roles.filter((r: any) => r.user_id === p.id).map((r: any) => r.role),
-    }));
+    const profiles = profilesRes.data ?? [];
+
+    // Fetch emails via admin API (owner-only view needs email to identify users)
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const emailMap = new Map<string, string>();
+    let page = 1;
+    while (true) {
+      const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
+      if (error) break;
+      for (const u of data.users) if (u.email) emailMap.set(u.id, u.email);
+      if (!data.users || data.users.length < 200) break;
+      page++;
+    }
+
+    return profiles.map((p: any) => {
+      const email = emailMap.get(p.id) ?? null;
+      return {
+        ...p,
+        email,
+        roles: roles.filter((r: any) => r.user_id === p.id).map((r: any) => r.role),
+        isProtected: isProtectedEmail(email),
+      };
+    });
   });
 
 export const setUserRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { userId: string; role: "owner" | "admin" | "agent" | "viewer" }) => d)
+  .inputValidator((d: { userId: string; role: "owner" | "admin" | "agent" | "client" | "viewer" | "visitor" }) => d)
   .handler(async ({ data, context }) => {
-    // remove other roles, set this one
+    // Only owners may change roles
+    const { data: myRoles } = await context.supabase.from("user_roles").select("role").eq("user_id", context.userId);
+    const iAmOwner = (myRoles ?? []).some((r: any) => r.role === "owner");
+    if (!iAmOwner) throw new Error("Forbidden: owner role required");
+
+    // Prevent changing protected owner accounts
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: userInfo } = await supabaseAdmin.auth.admin.getUserById(data.userId);
+    const targetEmail = userInfo?.user?.email ?? null;
+    if (isProtectedEmail(targetEmail) && data.role !== "owner") {
+      throw new Error("لا يمكن تغيير دور المالك المحمي");
+    }
+
     await context.supabase.from("user_roles").delete().eq("user_id", data.userId);
     const { error } = await context.supabase.from("user_roles").insert({ user_id: data.userId, role: data.role });
     if (error) throw new Error(error.message);
     await context.supabase.from("audit_log").insert({
       actor_id: context.userId, action: "user.role_change",
-      target: `users/${data.userId}`, details: { role: data.role },
+      target: `users/${data.userId}`, details: { role: data.role, email: targetEmail },
     });
     return { ok: true };
+  });
+
+export const deleteUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { userId: string }) => d)
+  .handler(async ({ data, context }) => {
+    const { data: myRoles } = await context.supabase.from("user_roles").select("role").eq("user_id", context.userId);
+    const iAmOwner = (myRoles ?? []).some((r: any) => r.role === "owner");
+    if (!iAmOwner) throw new Error("Forbidden: owner role required");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: userInfo } = await supabaseAdmin.auth.admin.getUserById(data.userId);
+    const email = userInfo?.user?.email ?? null;
+    if (isProtectedEmail(email)) throw new Error("لا يمكن حذف حساب المالك المحمي");
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
+    if (error) throw new Error(error.message);
+    await context.supabase.from("audit_log").insert({
+      actor_id: context.userId, action: "user.delete", target: `users/${data.userId}`, details: { email },
+    });
+    return { ok: true };
+  });
+
+export const linkClientToUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { clientId: string; userId: string | null }) => d)
+  .handler(async ({ data, context }) => {
+    const { data: myRoles } = await context.supabase.from("user_roles").select("role").eq("user_id", context.userId);
+    const iAmOwner = (myRoles ?? []).some((r: any) => r.role === "owner");
+    if (!iAmOwner) throw new Error("Forbidden: owner role required");
+    const { error } = await context.supabase.from("clients").update({ user_id: data.userId }).eq("id", data.clientId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const getMyClientPortal = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: client } = await context.supabase.from("clients").select("*").eq("user_id", context.userId).maybeSingle();
+    if (!client) return { client: null, sites: [] };
+    const { data: sites } = await context.supabase.from("sites").select("*").eq("client_id", client.id);
+    return { client, sites: sites ?? [] };
   });
 
 // ============ Generic CRUD for remaining tables ============
