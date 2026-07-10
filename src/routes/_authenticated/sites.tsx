@@ -36,7 +36,7 @@ function SitesPage() {
   const filtered = useMemo(() => sites.filter((s: any) => {
     const okS = filter === "all" ? true : s.status === filter;
     const q = query.trim().toLowerCase();
-    return okS && (!q || (s.domain ?? "").toLowerCase().includes(q));
+    return okS && (!q || (s.domain ?? "").toLowerCase().includes(q) || (s.site_code ?? "").toLowerCase().includes(q) || (s.role ?? "").toLowerCase().includes(q));
   }), [sites, filter, query]);
 
   const totals = {
