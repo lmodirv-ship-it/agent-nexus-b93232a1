@@ -184,6 +184,20 @@ export const deleteClient = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const listClientAudit = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { clientId: string }) => d)
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("audit_log")
+      .select("*")
+      .eq("target", `clients/${data.clientId}`)
+      .order("created_at", { ascending: false })
+      .limit(50);
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
 // ============ Sites CRUD ============
 export const listSites = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
