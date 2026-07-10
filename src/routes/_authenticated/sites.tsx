@@ -204,3 +204,19 @@ function SitesPage() {
     </div>
   );
 }
+
+function FilterSelect({ label, value, onChange, options, accent, labelMap }: {
+  label: string; value: string; onChange: (v: string) => void; options: string[]; accent: string; labelMap?: Record<string, string>;
+}) {
+  return (
+    <label className="flex items-center gap-2 text-xs">
+      <span className="text-muted-foreground min-w-[52px]">{label}</span>
+      <select value={value} onChange={(e) => onChange(e.target.value)}
+              className="flex-1 bg-black/30 border rounded-lg px-2 py-1.5 text-slate-200 outline-none focus:ring-2"
+              style={{ borderColor: `${accent}55` }}>
+        <option value="all">الكل</option>
+        {options.map((o) => <option key={o} value={o}>{labelMap?.[o] ?? o}</option>)}
+      </select>
+    </label>
+  );
+}
