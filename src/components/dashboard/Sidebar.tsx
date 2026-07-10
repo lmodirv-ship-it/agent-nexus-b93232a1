@@ -66,10 +66,15 @@ const groups = [
   {
     label: "الإعدادات",
     items: [
+      { to: "/users", label: "المستخدمون والأدوار", icon: UserCog, badge: "OWNER", ownerOnly: true },
       { to: "/settings", label: "إعدادات النظام", icon: Settings, badge: null },
       { to: "/backups", label: "النسخ الاحتياطي", icon: FileArchive, badge: null },
     ],
   },
+];
+
+const clientNav = [
+  { label: "بوابة العميل", items: [{ to: "/portal", label: "لوحتي", icon: Briefcase, badge: null }] },
 ];
 
 export function Sidebar() {
