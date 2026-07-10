@@ -725,17 +725,24 @@ export type Database = {
       }
       sites: {
         Row: {
+          activity_rate: number
           api_key_hash: string | null
           client_id: string | null
           created_at: string | null
+          db_name: string | null
           db_size_gb: number | null
           domain: string
           email: string | null
           health: string
           icon_color: string | null
           id: string
+          integration_status: string
           last_heartbeat_at: string | null
+          role: string | null
+          services: Json
+          site_code: string | null
           status: string
+          storage_backend: string | null
           storage_gb: number | null
           updated_at: string
           users_count: number | null
@@ -743,17 +750,24 @@ export type Database = {
           webhook_url: string | null
         }
         Insert: {
+          activity_rate?: number
           api_key_hash?: string | null
           client_id?: string | null
           created_at?: string | null
+          db_name?: string | null
           db_size_gb?: number | null
           domain: string
           email?: string | null
           health?: string
           icon_color?: string | null
           id?: string
+          integration_status?: string
           last_heartbeat_at?: string | null
+          role?: string | null
+          services?: Json
+          site_code?: string | null
           status?: string
+          storage_backend?: string | null
           storage_gb?: number | null
           updated_at?: string
           users_count?: number | null
@@ -761,17 +775,24 @@ export type Database = {
           webhook_url?: string | null
         }
         Update: {
+          activity_rate?: number
           api_key_hash?: string | null
           client_id?: string | null
           created_at?: string | null
+          db_name?: string | null
           db_size_gb?: number | null
           domain?: string
           email?: string | null
           health?: string
           icon_color?: string | null
           id?: string
+          integration_status?: string
           last_heartbeat_at?: string | null
+          role?: string | null
+          services?: Json
+          site_code?: string | null
           status?: string
+          storage_backend?: string | null
           storage_gb?: number | null
           updated_at?: string
           users_count?: number | null
@@ -876,7 +897,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      _site_code_prefix: { Args: { color: string }; Returns: string }
     }
     Enums: {
       app_role: "owner" | "admin" | "agent" | "viewer"
