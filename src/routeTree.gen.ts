@@ -28,6 +28,7 @@ import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedSecurityAttemptsRouteImport } from './routes/_authenticated/security.attempts'
 import { Route as AuthenticatedSecurityApiKeysRouteImport } from './routes/_authenticated/security.api-keys'
 import { Route as AuthenticatedAgentsAgentIdRouteImport } from './routes/_authenticated/agents.$agentId'
+import { Route as ApiPublicHubIngestRouteImport } from './routes/api/public/hub/ingest'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -127,6 +128,11 @@ const AuthenticatedAgentsAgentIdRoute =
     path: '/$agentId',
     getParentRoute: () => AuthenticatedAgentsRoute,
   } as any)
+const ApiPublicHubIngestRoute = ApiPublicHubIngestRouteImport.update({
+  id: '/api/public/hub/ingest',
+  path: '/api/public/hub/ingest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/security/api-keys': typeof AuthenticatedSecurityApiKeysRoute
   '/security/attempts': typeof AuthenticatedSecurityAttemptsRoute
+  '/api/public/hub/ingest': typeof ApiPublicHubIngestRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -167,6 +174,7 @@ export interface FileRoutesByTo {
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/security/api-keys': typeof AuthenticatedSecurityApiKeysRoute
   '/security/attempts': typeof AuthenticatedSecurityAttemptsRoute
+  '/api/public/hub/ingest': typeof ApiPublicHubIngestRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -189,6 +197,7 @@ export interface FileRoutesById {
   '/_authenticated/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/_authenticated/security/api-keys': typeof AuthenticatedSecurityApiKeysRoute
   '/_authenticated/security/attempts': typeof AuthenticatedSecurityAttemptsRoute
+  '/api/public/hub/ingest': typeof ApiPublicHubIngestRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -211,6 +220,7 @@ export interface FileRouteTypes {
     | '/agents/$agentId'
     | '/security/api-keys'
     | '/security/attempts'
+    | '/api/public/hub/ingest'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -231,6 +241,7 @@ export interface FileRouteTypes {
     | '/agents/$agentId'
     | '/security/api-keys'
     | '/security/attempts'
+    | '/api/public/hub/ingest'
   id:
     | '__root__'
     | '/_authenticated'
@@ -252,11 +263,13 @@ export interface FileRouteTypes {
     | '/_authenticated/agents/$agentId'
     | '/_authenticated/security/api-keys'
     | '/_authenticated/security/attempts'
+    | '/api/public/hub/ingest'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicHubIngestRoute: typeof ApiPublicHubIngestRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -394,6 +407,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAgentsAgentIdRouteImport
       parentRoute: typeof AuthenticatedAgentsRoute
     }
+    '/api/public/hub/ingest': {
+      id: '/api/public/hub/ingest'
+      path: '/api/public/hub/ingest'
+      fullPath: '/api/public/hub/ingest'
+      preLoaderRoute: typeof ApiPublicHubIngestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -463,6 +483,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicHubIngestRoute: ApiPublicHubIngestRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
