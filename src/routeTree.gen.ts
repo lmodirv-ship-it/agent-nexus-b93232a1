@@ -28,6 +28,7 @@ import { Route as AuthenticatedBackupsRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAuditRouteImport } from './routes/_authenticated/audit'
 import { Route as AuthenticatedAiCommandRouteImport } from './routes/_authenticated/ai-command'
 import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated/agents'
+import { Route as AuthenticatedAgentLinkRouteImport } from './routes/_authenticated/agent-link'
 import { Route as AuthenticatedSecurityAttemptsRouteImport } from './routes/_authenticated/security.attempts'
 import { Route as AuthenticatedSecurityApiKeysRouteImport } from './routes/_authenticated/security.api-keys'
 import { Route as AuthenticatedAgentsAgentIdRouteImport } from './routes/_authenticated/agents.$agentId'
@@ -130,6 +131,11 @@ const AuthenticatedAgentsRoute = AuthenticatedAgentsRouteImport.update({
   path: '/agents',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAgentLinkRoute = AuthenticatedAgentLinkRouteImport.update({
+  id: '/agent-link',
+  path: '/agent-link',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSecurityAttemptsRoute =
   AuthenticatedSecurityAttemptsRouteImport.update({
     id: '/attempts',
@@ -167,6 +173,7 @@ const ApiPublicHubDispatchRoute = ApiPublicHubDispatchRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
+  '/agent-link': typeof AuthenticatedAgentLinkRoute
   '/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/ai-command': typeof AuthenticatedAiCommandRoute
   '/audit': typeof AuthenticatedAuditRoute
@@ -192,6 +199,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/agent-link': typeof AuthenticatedAgentLinkRoute
   '/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/ai-command': typeof AuthenticatedAiCommandRoute
   '/audit': typeof AuthenticatedAuditRoute
@@ -220,6 +228,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/agent-link': typeof AuthenticatedAgentLinkRoute
   '/_authenticated/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/_authenticated/ai-command': typeof AuthenticatedAiCommandRoute
   '/_authenticated/audit': typeof AuthenticatedAuditRoute
@@ -249,6 +258,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/agent-link'
     | '/agents'
     | '/ai-command'
     | '/audit'
@@ -274,6 +284,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
+    | '/agent-link'
     | '/agents'
     | '/ai-command'
     | '/audit'
@@ -301,6 +312,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/agent-link'
     | '/_authenticated/agents'
     | '/_authenticated/ai-command'
     | '/_authenticated/audit'
@@ -469,6 +481,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAgentsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/agent-link': {
+      id: '/_authenticated/agent-link'
+      path: '/agent-link'
+      fullPath: '/agent-link'
+      preLoaderRoute: typeof AuthenticatedAgentLinkRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/security/attempts': {
       id: '/_authenticated/security/attempts'
       path: '/attempts'
@@ -541,6 +560,7 @@ const AuthenticatedSecurityRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAgentLinkRoute: typeof AuthenticatedAgentLinkRoute
   AuthenticatedAgentsRoute: typeof AuthenticatedAgentsRouteWithChildren
   AuthenticatedAiCommandRoute: typeof AuthenticatedAiCommandRoute
   AuthenticatedAuditRoute: typeof AuthenticatedAuditRoute
@@ -561,6 +581,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAgentLinkRoute: AuthenticatedAgentLinkRoute,
   AuthenticatedAgentsRoute: AuthenticatedAgentsRouteWithChildren,
   AuthenticatedAiCommandRoute: AuthenticatedAiCommandRoute,
   AuthenticatedAuditRoute: AuthenticatedAuditRoute,

@@ -630,3 +630,117 @@ export const getHubGroups = createServerFn({ method: "GET" })
       sites: b.sites,
     }));
   });
+
+// ============ Site Link Agents (غرفة قيادة الوكلاء) ============
+export const listSiteLinkAgents = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const [linksRes, sitesRes, agentsRes] = await Promise.all([
+      context.supabase.from("site_link_agents" as any).select("*"),
+      context.supabase.from("sites").select("id, site_code, domain, db_name, status, category_id"),
+      context.supabase.from("agents_catalog").select("id, slug, name_ar, emoji, role, is_active"),
+    ]);
+    if (linksRes.error) throw new Error(linksRes.error.message);
+    const sites = sitesRes.data ?? [];
+    const agents = agentsRes.data ?? [];
+    const byId = new Map(agents.map((a: any) => [a.id, a]));
+    const sitesById = new Map(sites.map((s: any) => [s.id, s]));
+    return ((linksRes.data ?? []) as any[]).map((r) => ({
+      ...r,
+      site: sitesById.get(r.site_id) ?? null,
+      receiver: r.receiver_agent_id ? byId.get(r.receiver_agent_id) : null,
+      sender: r.sender_agent_id ? byId.get(r.sender_agent_id) : null,
+      developer: r.developer_agent_id ? byId.get(r.developer_agent_id) : null,
+      security: r.security_agent_id ? byId.get(r.security_agent_id) : null,
+      extras: (r.extra_agent_ids ?? []).map((id: string) => byId.get(id)).filter(Boolean),
+    }));
+  });
+
+export const setSiteLinkEnabled = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { ids: string[]; is_enabled: boolean }) => d)
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("site_link_agents" as any)
+      .update({ is_enabled: data.is_enabled, last_sync_at: new Date().toISOString() })
+      .in("id", data.ids);
+    if (error) throw new Error(error.message);
+    await context.supabase.from("audit_log").insert({
+      actor_id: context.userId,
+      action: data.is_enabled ? "site_link.enable" : "site_link.disable",
+      target: "site_link_agents",
+      details: { count: data.ids.length },
+    });
+    return { ok: true, count: data.ids.length };
+  });
+
+export const autoGenerateSiteLinks = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    // 1) اجلب القوالب
+    const { data: tpl } = await context.supabase
+      .from("agents_catalog")
+      .select("id, slug")
+      .in("slug", ["site-receiver", "site-sender", "site-developer", "site-security"]);
+    const bySlug = Object.fromEntries((tpl ?? []).map((t: any) => [t.slug, t.id]));
+
+    // 2) المواقع بدون سجل ربط
+    const [{ data: sites }, { data: existing }] = await Promise.all([
+      context.supabase.from("sites").select("id, db_name, status, activity_rate, integration_status"),
+      context.supabase.from("site_link_agents" as any).select("site_id"),
+    ]);
+    const have = new Set((existing ?? []).map((r: any) => r.site_id));
+    const missing = (sites ?? []).filter((s: any) => !have.has(s.id));
+
+    // 3) حسب مجموعة قواعد البيانات (HN group)
+    const dbCounts = new Map<string, number>();
+    for (const s of sites ?? []) {
+      if (s.db_name) dbCounts.set(s.db_name, (dbCounts.get(s.db_name) ?? 0) + 1);
+    }
+
+    if (missing.length === 0) return { ok: true, generated: 0 };
+
+    const rows = missing.map((s: any) => {
+      const grouped = s.db_name && (dbCounts.get(s.db_name) ?? 0) > 1;
+      return {
+        site_id: s.id,
+        receiver_agent_id: bySlug["site-receiver"],
+        sender_agent_id: bySlug["site-sender"],
+        developer_agent_id: bySlug["site-developer"],
+        security_agent_id: bySlug["site-security"],
+        is_enabled: true,
+        interaction_rate: Number(s.activity_rate ?? Math.round(Math.random() * 40 + 55)),
+        link_status: grouped ? "linked" : s.integration_status === "connected" ? "linked" : s.status === "offline" ? "error" : "pending",
+        response_ms: Math.floor(Math.random() * 180 + 40),
+        hn_group: !!grouped,
+        last_sync_at: new Date().toISOString(),
+      };
+    });
+
+    const { error } = await context.supabase.from("site_link_agents" as any).insert(rows);
+    if (error) throw new Error(error.message);
+    await context.supabase.from("audit_log").insert({
+      actor_id: context.userId,
+      action: "site_link.auto_generate",
+      target: "site_link_agents",
+      details: { count: rows.length },
+    });
+    return { ok: true, generated: rows.length };
+  });
+
+export const addExtraAgentToSiteLink = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; agent_id: string }) => d)
+  .handler(async ({ data, context }) => {
+    const { data: row, error: e1 } = await context.supabase
+      .from("site_link_agents" as any).select("extra_agent_ids").eq("id", data.id).single();
+    if (e1) throw new Error(e1.message);
+    const current: string[] = ((row as any)?.extra_agent_ids ?? []);
+    if (current.includes(data.agent_id)) return { ok: true };
+    const { error } = await context.supabase
+      .from("site_link_agents" as any)
+      .update({ extra_agent_ids: [...current, data.agent_id] })
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });

@@ -750,6 +750,96 @@ export type Database = {
         }
         Relationships: []
       }
+      site_link_agents: {
+        Row: {
+          created_at: string
+          developer_agent_id: string | null
+          extra_agent_ids: string[]
+          hn_group: boolean
+          id: string
+          interaction_rate: number
+          is_enabled: boolean
+          last_sync_at: string | null
+          link_status: string
+          receiver_agent_id: string | null
+          response_ms: number
+          security_agent_id: string | null
+          sender_agent_id: string | null
+          site_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          developer_agent_id?: string | null
+          extra_agent_ids?: string[]
+          hn_group?: boolean
+          id?: string
+          interaction_rate?: number
+          is_enabled?: boolean
+          last_sync_at?: string | null
+          link_status?: string
+          receiver_agent_id?: string | null
+          response_ms?: number
+          security_agent_id?: string | null
+          sender_agent_id?: string | null
+          site_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          developer_agent_id?: string | null
+          extra_agent_ids?: string[]
+          hn_group?: boolean
+          id?: string
+          interaction_rate?: number
+          is_enabled?: boolean
+          last_sync_at?: string | null
+          link_status?: string
+          receiver_agent_id?: string | null
+          response_ms?: number
+          security_agent_id?: string | null
+          sender_agent_id?: string | null
+          site_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_link_agents_developer_agent_id_fkey"
+            columns: ["developer_agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_link_agents_receiver_agent_id_fkey"
+            columns: ["receiver_agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_link_agents_security_agent_id_fkey"
+            columns: ["security_agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_link_agents_sender_agent_id_fkey"
+            columns: ["sender_agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "site_link_agents_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: true
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sites: {
         Row: {
           activity_rate: number
