@@ -2,7 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Globe, Database, HardDrive, Shield, Sparkles,
   Bot, Settings, Activity, Cloud, Key, LogIn, FileArchive, FolderOpen,
-  Crown, ScrollText, Network, Users, Radio, Mail, Code2,
+  Crown, ScrollText, Network, Users, Radio, Mail, Code2, Link2,
 } from "lucide-react";
 
 const groups = [
