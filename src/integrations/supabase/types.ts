@@ -214,17 +214,29 @@ export type Database = {
       }
       ai_models: {
         Row: {
-          api_key_secret: string | null
           capabilities: string[]
+          caps: Json
+          category: string
+          context_window: number | null
           created_at: string
+          description: string | null
+          display_name: string | null
+          gateway_code: string | null
           id: string
+          input_price_per_million: number | null
           is_default: boolean
           is_enabled: boolean
+          max_output_tokens: number | null
+          metadata: Json
+          modalities: Json
           model_code: string
           model_id: string
-          name: string
+          name: string | null
           notes: string | null
-          provider: string
+          output_price_per_million: number | null
+          priority: number
+          provider: string | null
+          provider_id: string | null
           role: string | null
           rules: string | null
           source: string | null
@@ -233,17 +245,29 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          api_key_secret?: string | null
           capabilities?: string[]
+          caps?: Json
+          category?: string
+          context_window?: number | null
           created_at?: string
+          description?: string | null
+          display_name?: string | null
+          gateway_code?: string | null
           id?: string
+          input_price_per_million?: number | null
           is_default?: boolean
           is_enabled?: boolean
+          max_output_tokens?: number | null
+          metadata?: Json
+          modalities?: Json
           model_code: string
           model_id: string
-          name: string
+          name?: string | null
           notes?: string | null
-          provider: string
+          output_price_per_million?: number | null
+          priority?: number
+          provider?: string | null
+          provider_id?: string | null
           role?: string | null
           rules?: string | null
           source?: string | null
@@ -252,17 +276,29 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          api_key_secret?: string | null
           capabilities?: string[]
+          caps?: Json
+          category?: string
+          context_window?: number | null
           created_at?: string
+          description?: string | null
+          display_name?: string | null
+          gateway_code?: string | null
           id?: string
+          input_price_per_million?: number | null
           is_default?: boolean
           is_enabled?: boolean
+          max_output_tokens?: number | null
+          metadata?: Json
+          modalities?: Json
           model_code?: string
           model_id?: string
-          name?: string
+          name?: string | null
           notes?: string | null
-          provider?: string
+          output_price_per_million?: number | null
+          priority?: number
+          provider?: string | null
+          provider_id?: string | null
           role?: string | null
           rules?: string | null
           source?: string | null
@@ -270,7 +306,111 @@ export type Database = {
           task?: string | null
           updated_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "ai_models_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "ai_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_providers: {
+        Row: {
+          api_key_secret_name: string
+          base_url: string | null
+          code: string
+          created_at: string
+          id: string
+          is_enabled: boolean
+          metadata: Json
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          api_key_secret_name: string
+          base_url?: string | null
+          code: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          metadata?: Json
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          api_key_secret_name?: string
+          base_url?: string | null
+          code?: string
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          metadata?: Json
+          name?: string
+          updated_at?: string
+        }
         Relationships: []
+      }
+      ai_usage_logs: {
+        Row: {
+          cost: number
+          created_at: string
+          error: string | null
+          id: string
+          input_tokens: number
+          latency_ms: number | null
+          metadata: Json
+          model_id: string | null
+          output_tokens: number
+          site_id: string | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          cost?: number
+          created_at?: string
+          error?: string | null
+          id?: string
+          input_tokens?: number
+          latency_ms?: number | null
+          metadata?: Json
+          model_id?: string | null
+          output_tokens?: number
+          site_id?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          cost?: number
+          created_at?: string
+          error?: string | null
+          id?: string
+          input_tokens?: number
+          latency_ms?: number | null
+          metadata?: Json
+          model_id?: string | null
+          output_tokens?: number
+          site_id?: string | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_usage_logs_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "ai_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_usage_logs_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       api_keys: {
         Row: {
@@ -1055,6 +1195,39 @@ export type Database = {
           id?: string
           name?: string
           size_gb?: number | null
+        }
+        Relationships: []
+      }
+      user_ai_limits: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          monthly_request_cap: number | null
+          monthly_token_cap: number | null
+          notes: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          monthly_request_cap?: number | null
+          monthly_token_cap?: number | null
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          monthly_request_cap?: number | null
+          monthly_token_cap?: number | null
+          notes?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
