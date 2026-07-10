@@ -187,6 +187,39 @@ function SitesPage() {
 
       <ExportKeysBanner />
 
+      <div className="panel p-3 mb-4">
+        <div className="flex items-center justify-between mb-2 text-xs text-muted-foreground">
+          <span className="font-semibold text-slate-200 flex items-center gap-1"><Tag className="w-3.5 h-3.5" /> تصنيفات المجموعة</span>
+          <button onClick={() => setCatFilter("all")} className={`text-[11px] px-2 py-0.5 rounded ${catFilter === "all" ? "bg-cyan-neon/20 text-cyan-neon" : "text-muted-foreground hover:text-slate-200"}`}>الكل ({sites.length})</button>
+        </div>
+        <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2">
+          {categories.map((c: any) => {
+            const pct = c.target_count > 0 ? Math.min(100, Math.round((c.actual / c.target_count) * 100)) : 0;
+            const active = catFilter === c.id;
+            return (
+              <button key={c.id} onClick={() => setCatFilter(active ? "all" : c.id)}
+                className="text-right rounded-lg p-2 border transition text-xs"
+                style={{
+                  borderColor: active ? c.color : `${c.color}33`,
+                  background: active ? `${c.color}22` : "rgba(255,255,255,0.02)",
+                  boxShadow: active ? `0 0 14px ${c.color}66` : "none",
+                }}>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="font-mono text-[10px] opacity-70" style={{ color: c.color }}>{c.code_prefix}·</span>
+                  <span className="tabular-nums text-[11px] font-bold" style={{ color: c.color }}>{c.actual}<span className="opacity-60 text-[9px]">/{c.target_count}</span></span>
+                </div>
+                <div className="text-[11px] text-slate-200 leading-tight mt-1 line-clamp-2">{c.name}</div>
+                <div className="mt-1.5 h-1 rounded-full bg-white/5 overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: `${pct}%`, background: c.color, boxShadow: `0 0 6px ${c.color}` }} />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+
+
       <div className="panel p-3 mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[220px]">
           <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
