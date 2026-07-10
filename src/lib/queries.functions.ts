@@ -744,3 +744,76 @@ export const addExtraAgentToSiteLink = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ---------- AI Models catalog ----------
+export const listAiModels = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("ai_models" as any).select("*").order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as any[];
+  });
+
+export const upsertAiModel = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: {
+    id?: string;
+    name: string;
+    provider: string;
+    source?: string | null;
+    model_id: string;
+    api_key_secret?: string | null;
+    role?: string | null;
+    task?: string | null;
+    capabilities?: string[];
+    rules?: string | null;
+    status?: string;
+    is_enabled?: boolean;
+    is_default?: boolean;
+    notes?: string | null;
+  }) => d)
+  .handler(async ({ data, context }) => {
+    const payload: any = {
+      name: data.name,
+      provider: data.provider,
+      source: data.source ?? null,
+      model_id: data.model_id,
+      api_key_secret: data.api_key_secret ?? null,
+      role: data.role ?? null,
+      task: data.task ?? null,
+      capabilities: data.capabilities ?? [],
+      rules: data.rules ?? null,
+      status: data.status ?? "active",
+      is_enabled: data.is_enabled ?? true,
+      is_default: data.is_default ?? false,
+      notes: data.notes ?? null,
+    };
+    if (data.id) {
+      const { error } = await context.supabase.from("ai_models" as any).update(payload).eq("id", data.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await context.supabase.from("ai_models" as any).insert(payload);
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true };
+  });
+
+export const toggleAiModel = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; is_enabled: boolean }) => d)
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("ai_models" as any).update({ is_enabled: data.is_enabled }).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteAiModel = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("ai_models" as any).delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
