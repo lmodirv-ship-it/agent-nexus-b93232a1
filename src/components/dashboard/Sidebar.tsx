@@ -50,6 +50,7 @@ const groups = [
     items: [
       { to: "/ai-command", label: "AI Command Center", icon: Sparkles, badge: null },
       { to: "/agents", label: "الوكلاء الأذكياء", icon: Bot, badge: "8" },
+      { to: "/agent-link", label: "وكلاء الربط", icon: Link2, badge: "LIVE" },
     ],
   },
   {
