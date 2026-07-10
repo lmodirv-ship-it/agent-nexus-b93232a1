@@ -1260,7 +1260,7 @@ export type Database = {
       _site_code_prefix: { Args: { color: string }; Returns: string }
     }
     Enums: {
-      app_role: "owner" | "admin" | "agent" | "viewer"
+      app_role: "owner" | "admin" | "agent" | "viewer" | "client" | "visitor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1388,7 +1388,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["owner", "admin", "agent", "viewer"],
+      app_role: ["owner", "admin", "agent", "viewer", "client", "visitor"],
     },
   },
 } as const
