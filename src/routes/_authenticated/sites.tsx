@@ -173,10 +173,10 @@ function SitesPage() {
       <div className="panel p-3 mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[220px]">
           <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ابحث بالنطاق..."
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ابحث بالنطاق / المعرّف / الدور..."
                  className="w-full bg-black/30 border border-white/10 rounded-lg pr-9 pl-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-neon/40" />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {["all", "online", "warning", "danger", "offline"].map((f) => (
             <button key={f} onClick={() => setFilter(f)}
                     className="px-3 py-1.5 rounded-lg text-xs font-semibold border transition"
@@ -187,6 +187,14 @@ function SitesPage() {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="panel p-3 mb-4 grid gap-3 md:grid-cols-3">
+        <FilterSelect label="الدور" value={roleFilter} onChange={setRoleFilter} options={roleOptions} accent="#a78bfa" />
+        <FilterSelect label="الخدمة" value={serviceFilter} onChange={setServiceFilter} options={serviceOptions} accent="#22d3ee" />
+        <FilterSelect label="التكامل" value={integFilter} onChange={setIntegFilter} options={integOptions}
+                      accent="#fbbf24"
+                      labelMap={{ connected: "متصل", provisioned: "مُهيّأ", pending: "بانتظار" }} />
       </div>
 
       <DataTable rows={filtered} columns={columns} />
