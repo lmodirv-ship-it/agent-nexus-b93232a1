@@ -212,6 +212,66 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_models: {
+        Row: {
+          api_key_secret: string | null
+          capabilities: string[]
+          created_at: string
+          id: string
+          is_default: boolean
+          is_enabled: boolean
+          model_code: string
+          model_id: string
+          name: string
+          notes: string | null
+          provider: string
+          role: string | null
+          rules: string | null
+          source: string | null
+          status: string
+          task: string | null
+          updated_at: string
+        }
+        Insert: {
+          api_key_secret?: string | null
+          capabilities?: string[]
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          is_enabled?: boolean
+          model_code: string
+          model_id: string
+          name: string
+          notes?: string | null
+          provider: string
+          role?: string | null
+          rules?: string | null
+          source?: string | null
+          status?: string
+          task?: string | null
+          updated_at?: string
+        }
+        Update: {
+          api_key_secret?: string | null
+          capabilities?: string[]
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          is_enabled?: boolean
+          model_code?: string
+          model_id?: string
+          name?: string
+          notes?: string | null
+          provider?: string
+          role?: string | null
+          rules?: string | null
+          source?: string | null
+          status?: string
+          task?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       api_keys: {
         Row: {
           active: boolean | null
