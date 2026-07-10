@@ -19,6 +19,7 @@ import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
 import { Route as AuthenticatedPerformanceRouteImport } from './routes/_authenticated/performance'
 import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated/inbox'
+import { Route as AuthenticatedHubSdkRouteImport } from './routes/_authenticated/hub-sdk'
 import { Route as AuthenticatedHubRouteImport } from './routes/_authenticated/hub'
 import { Route as AuthenticatedFoldersRouteImport } from './routes/_authenticated/folders'
 import { Route as AuthenticatedDatabasesRouteImport } from './routes/_authenticated/databases'
@@ -82,6 +83,11 @@ const AuthenticatedPerformanceRoute =
 const AuthenticatedInboxRoute = AuthenticatedInboxRouteImport.update({
   id: '/inbox',
   path: '/inbox',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHubSdkRoute = AuthenticatedHubSdkRouteImport.update({
+  id: '/hub-sdk',
+  path: '/hub-sdk',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedHubRoute = AuthenticatedHubRouteImport.update({
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/databases': typeof AuthenticatedDatabasesRoute
   '/folders': typeof AuthenticatedFoldersRoute
   '/hub': typeof AuthenticatedHubRoute
+  '/hub-sdk': typeof AuthenticatedHubSdkRoute
   '/inbox': typeof AuthenticatedInboxRoute
   '/performance': typeof AuthenticatedPerformanceRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
@@ -193,6 +200,7 @@ export interface FileRoutesByTo {
   '/databases': typeof AuthenticatedDatabasesRoute
   '/folders': typeof AuthenticatedFoldersRoute
   '/hub': typeof AuthenticatedHubRoute
+  '/hub-sdk': typeof AuthenticatedHubSdkRoute
   '/inbox': typeof AuthenticatedInboxRoute
   '/performance': typeof AuthenticatedPerformanceRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
@@ -220,6 +228,7 @@ export interface FileRoutesById {
   '/_authenticated/databases': typeof AuthenticatedDatabasesRoute
   '/_authenticated/folders': typeof AuthenticatedFoldersRoute
   '/_authenticated/hub': typeof AuthenticatedHubRoute
+  '/_authenticated/hub-sdk': typeof AuthenticatedHubSdkRoute
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
   '/_authenticated/performance': typeof AuthenticatedPerformanceRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRouteWithChildren
@@ -248,6 +257,7 @@ export interface FileRouteTypes {
     | '/databases'
     | '/folders'
     | '/hub'
+    | '/hub-sdk'
     | '/inbox'
     | '/performance'
     | '/security'
@@ -272,6 +282,7 @@ export interface FileRouteTypes {
     | '/databases'
     | '/folders'
     | '/hub'
+    | '/hub-sdk'
     | '/inbox'
     | '/performance'
     | '/security'
@@ -298,6 +309,7 @@ export interface FileRouteTypes {
     | '/_authenticated/databases'
     | '/_authenticated/folders'
     | '/_authenticated/hub'
+    | '/_authenticated/hub-sdk'
     | '/_authenticated/inbox'
     | '/_authenticated/performance'
     | '/_authenticated/security'
@@ -392,6 +404,13 @@ declare module '@tanstack/react-router' {
       path: '/inbox'
       fullPath: '/inbox'
       preLoaderRoute: typeof AuthenticatedInboxRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/hub-sdk': {
+      id: '/_authenticated/hub-sdk'
+      path: '/hub-sdk'
+      fullPath: '/hub-sdk'
+      preLoaderRoute: typeof AuthenticatedHubSdkRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/hub': {
@@ -530,6 +549,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDatabasesRoute: typeof AuthenticatedDatabasesRoute
   AuthenticatedFoldersRoute: typeof AuthenticatedFoldersRoute
   AuthenticatedHubRoute: typeof AuthenticatedHubRoute
+  AuthenticatedHubSdkRoute: typeof AuthenticatedHubSdkRoute
   AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
   AuthenticatedPerformanceRoute: typeof AuthenticatedPerformanceRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRouteWithChildren
@@ -549,6 +569,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDatabasesRoute: AuthenticatedDatabasesRoute,
   AuthenticatedFoldersRoute: AuthenticatedFoldersRoute,
   AuthenticatedHubRoute: AuthenticatedHubRoute,
+  AuthenticatedHubSdkRoute: AuthenticatedHubSdkRoute,
   AuthenticatedInboxRoute: AuthenticatedInboxRoute,
   AuthenticatedPerformanceRoute: AuthenticatedPerformanceRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRouteWithChildren,
@@ -572,13 +593,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

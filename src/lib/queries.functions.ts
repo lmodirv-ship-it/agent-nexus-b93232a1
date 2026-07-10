@@ -506,3 +506,72 @@ export const markMailRead = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ============ HN Group provisioning export ============
+export const getProvisioningStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("sites_provisioning" as any)
+      .select("id, exported_at");
+    if (error) throw new Error(error.message);
+    const rows = (data ?? []) as any[];
+    return {
+      total: rows.length,
+      pending: rows.filter((r) => !r.exported_at).length,
+    };
+  });
+
+export const exportProvisioning = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("sites_provisioning" as any)
+      .select("id, api_key, webhook_secret, exported_at, sites:site_id(domain)")
+      .is("exported_at", null);
+    if (error) throw new Error(error.message);
+    const list = ((rows ?? []) as any[]).map((r) => ({
+      domain: r.sites?.domain ?? "",
+      api_key: r.api_key,
+      webhook_secret: r.webhook_secret,
+    }));
+    if (list.length === 0) return { rows: [], count: 0 };
+    const ids = ((rows ?? []) as any[]).map((r) => r.id);
+    await context.supabase
+      .from("sites_provisioning" as any)
+      .update({ exported_at: new Date().toISOString() })
+      .in("id", ids);
+    await context.supabase.from("audit_log").insert({
+      actor_id: context.userId,
+      action: "hub.export_keys",
+      target: "sites_provisioning",
+      details: { count: list.length },
+    });
+    return { rows: list, count: list.length };
+  });
+
+export const getHubGroups = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data } = await context.supabase
+      .from("sites")
+      .select("id, domain, icon_color, health, last_heartbeat_at, status");
+    const sites = (data ?? []) as any[];
+    const now = Date.now();
+    const isOnline = (s: any) =>
+      s.last_heartbeat_at && now - new Date(s.last_heartbeat_at).getTime() < 60_000;
+    const buckets: Record<string, { color: string; sites: any[] }> = {};
+    for (const s of sites) {
+      const color = s.icon_color ?? "slate";
+      if (!buckets[color]) buckets[color] = { color, sites: [] };
+      buckets[color].sites.push({
+        id: s.id, domain: s.domain, online: isOnline(s), color,
+      });
+    }
+    return Object.values(buckets).map((b) => ({
+      color: b.color,
+      total: b.sites.length,
+      online: b.sites.filter((s) => s.online).length,
+      sites: b.sites,
+    }));
+  });

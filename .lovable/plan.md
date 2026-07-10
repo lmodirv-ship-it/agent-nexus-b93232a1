@@ -1,123 +1,71 @@
+# استيراد شبكة hn-group الكاملة إلى قلب المجموعة
 
-# خطة: تحويل الموقع إلى "قلب" مجموعة HN
+## المدخلات
+- 155 رابطاً أرسلته → بعد إزالة `https://` وتوحيد `www.` مع الأصل → **~95 دومين فريد**.
+- الباقي مكرّرات (نفس النطاق مع/بدون `www`).
 
-الهدف: يصبح هذا الموقع مركز قيادة (Command Hub) يتحكم بمجموعة مواقع HN، يرسل ويستقبل منها، يوزع المهام على الوكلاء، ويعرض حالة كل شيء لحظياً.
+## 1. تنظيف قاعدة البيانات
+- حذف المواقع التجريبية `site1..site10` من جدول `sites`.
+- الإبقاء على المواقع الست الأصلية إن أردت (سؤال ضمن التنفيذ: سأدمجها تلقائياً إن طابق دومينها اللائحة، وإلا سأحذفها).
+- إنشاء عميل واحد اسمه **HN Group** في جدول `clients` وربط كل المواقع الجديدة بـ `client_id` الخاص به.
 
-المكونات الحالية: كتالوج وكلاء + جدول مواقع + ربط وكيل↔موقع + بريد لكل موقع + HUD مختبر.
-الفجوات: لا يوجد ناقل رسائل فعلي، لا Webhooks، لا مفاتيح API لكل موقع، لا صندوق وارد موحد، لا صحة لحظية، لا سجل تنفيذ للأوامر.
+## 2. إدراج المواقع (Migration + Insert)
+لكل دومين فريد سيُدرج صف في `sites`:
+- `domain` = الشكل القانوني بدون `https://` وبدون `www.`
+- `client_id` = HN Group
+- `status` = `unknown` (سيتحول إلى `online` عند أول heartbeat)
+- `health` = `unknown`
+- `icon_color` = يُشتق تلقائياً من فئة الدومين (انظر التصنيف أدناه)
+- `email` = `ops@<root-domain>` كقيمة افتراضية قابلة للتعديل لاحقاً
+- `api_key_hash` + `webhook_secret` = يُولَّدان تلقائياً في نفس الـ migration عبر `gen_random_uuid()` + `digest(...,'sha256')`
 
----
+### التصنيف التلقائي حسب الـ subdomain / الغرض
+| النمط | الفئة | اللون |
+|---|---|---|
+| `api.*`, `ws.*`, `auth.*`, `owner.*`, `rule.*`, `users.*`, `status.*`, `files.*`, `db.*`, `hn-db.*`, `hn-dbpro.*` | Backend / DB | cyan |
+| `ai.*`, `hn-ai.*`, `hnclinik-ai.*`, `buildcv-ai.*`, `generatin.*`, `hn-chat.*`, `hnchat.*` | AI | violet |
+| `driver.*`, `hn-driver.*`, `hndriver.*`, `ride.*`, `delivery.*`, `call*.*`, `slavacall-hiba.*` | Driver / Call | orange |
+| `store.*`, `stouk.*`, `souk-hn.*`, `hn-immo.*`, `hnapps.*`, `hiba-eco.*` | Commerce | green |
+| `video.*`, `film.*`, `cinema.*`, `studio.*`, `tanjaprint.*` | Media | pink |
+| `learn.*`, `cv.*`, `blog.*`, `nawat.*`, `adkhar.*`, `hn-adkhar.*` | Content / Edu | yellow |
+| `hn-carwash.*`, `carwashpro.*`, `lavagenizar.*` | Carwash | teal |
+| `hn-finance.*`, `facturation.*`, `rfp.*`, `tender.*`, `audit.*` | Finance / Ops | amber |
+| `hn-groupe.*`, `groupe-hn.*`, `goupe-hn.*`, `createur.*`, `hn-createur.*` | Core Group | blue |
+| كل ما تبقى | Other | slate |
 
-## 1) ناقل الأحداث الموحد (Event Bus)
+## 3. توليد المفاتيح
+- الـ migration يستخدم `pgcrypto` (متاح) لتوليد:
+  - `webhook_secret = encode(gen_random_bytes(32), 'hex')`
+  - `api_key_raw = 'hn_' || encode(gen_random_bytes(24), 'hex')` (يُحفظ مؤقتاً في جدول جانبي `sites_provisioning` ثم يُصدَّر مرة واحدة)
+  - `api_key_hash = encode(digest(api_key_raw, 'sha256'), 'hex')` في `sites`
+- جدول `sites_provisioning` يُقرأ فقط عبر server function `exportProvisioningCsv` (Owner فقط)، ثم يُحذف تلقائياً بعد التصدير الأول.
 
-جدول `hub_events` مركزي يستقبل ويصدر:
-- `direction`: inbound (من موقع إلى الهب) / outbound (من الهب إلى موقع)
-- `site_id`, `agent_id` (اختياري), `type` (order, alert, sync, mail, task, heartbeat...), `payload jsonb`, `status` (queued/processing/delivered/failed), `attempts`, `error`, `created_at`, `delivered_at`
-- Realtime مُفعّل → لوحة الأحداث تتحدث لحظياً
+## 4. صفحة تصدير المفاتيح (`/sites` → زر «Export HN Group Keys»)
+- تظهر مرة واحدة فقط.
+- تُنزّل ملف CSV: `domain, api_key, webhook_secret, ingest_url, heartbeat_url`.
+- بعد التنزيل: تسجيل `audit_log` + تفريغ `sites_provisioning`.
 
-## 2) واجهة استقبال عامة (Ingress)
+## 5. خريطة الشبكة (`/hub` تحديث)
+- تحويل عرض المواقع من قائمة إلى **خريطة نصف دائرية** حول أيقونة القلب المركزية.
+- تجميع تلقائي حسب الفئة (ألوان الجدول أعلاه) — كل فئة قوس مستقل.
+- خطوط نابضة حية عند وصول `hub_events` (يوجد بالفعل Realtime على الجدول).
+- عدّاد لكل فئة: `online / total`.
 
-مسار `/api/public/hub/ingest` (server route):
-- يستقبل POST من كل موقع بمفتاح API + توقيع HMAC
-- يتحقق من المفتاح ويُدرج الحدث في `hub_events` كـ inbound
-- يعيد `event_id` للمصدر
+## 6. SDK جاهز للنسخ (يُضاف كصفحة `/hub/sdk`)
+- تبويبان: **PHP** و **Node.js**.
+- كل تبويب يحوي كود جاهز للصق يحتاج فقط ملء `HN_HUB_API_KEY` و `HN_HUB_SECRET` من CSV.
+- الوظائف: `sendHeartbeat()`, `emit(type,payload)`, `verifyIncoming(req)`.
 
-## 3) موزّع الأوامر (Dispatcher)
+## ملاحظات تقنية (لك)
+- كل الإدراجات ستُنفَّذ عبر أداة insert (بيانات، لا سكيمة) — لن أضيف أعمدة جديدة إلا `sites_provisioning` (جدول جديد) الذي يحتاج migration.
+- لن أمس المواقع الست الأصلية (`souk-hn.com`, `islamiat.net`, إلخ) — سأعيد تصنيف ألوانها فقط لتنسجم مع الجدول.
+- المواقع التي تحتوي `www.` في اللائحة تُطبَّع تلقائياً؛ لن تُدرَج كصفوف مكرّرة.
+- `carwashpro.com` و `hnclinik-ai.com` و `slavacall-hiba.com` وغيرها ليست تحت `hn-*` لكنها في لائحتك → ستُدرَج ضمن نفس عميل HN Group.
 
-مسار `/api/public/hub/dispatch` مجدول عبر pg_cron كل دقيقة:
-- يسحب الأحداث outbound بحالة queued
-- يرسلها إلى `site.webhook_url` مع توقيع HMAC
-- يحدث الحالة delivered/failed مع محاولات retry تصاعدية
+## ما ستراه بعد التنفيذ
+- جدول `/sites` يعرض ~95 موقعاً موزّعة على 10 فئات ملوّنة.
+- زر «Export HN Group Keys» يظهر مرة واحدة → تنزيل CSV.
+- `/hub` يعرض خريطة القلب مع 10 مجرّات فرعية.
+- `/hub/sdk` جاهز للصق في كل موقع.
 
-## 4) مفاتيح API + أسرار HMAC لكل موقع
-
-توسيع جدول `sites`:
-- `api_key` (مولّد تلقائياً، يُعرض مرة واحدة)
-- `webhook_secret` (لتوقيع الطلبات الصادرة)
-- `webhook_url` (endpoint الموقع لاستقبال أوامر الهب)
-- `last_heartbeat_at`, `health` (online/degraded/offline يُحسب من آخر نبضة)
-
-## 5) صندوق وارد موحد للبريد
-
-صفحة `/inbox`: كل الرسائل الواردة عبر عناوين مواقع المجموعة في مكان واحد
-- جدول `mail_messages` (site_id, from, to, subject, body, direction, read_at)
-- زر "رد" يرسل عبر بريد الموقع المستقبِل
-
-## 6) لوحة "قلب المجموعة" (Hub Overview)
-
-صفحة `/hub` جديدة كصفحة رئيسية:
-- خريطة/شبكة مرئية للمواقع مع خط نابض لكل موقع نشط
-- عدّاد أحداث/دقيقة (in/out)
-- آخر 20 حدث Live Stream
-- حالة كل موقع (heartbeat < 60s = online)
-
-## 7) موزّع المهام على الوكلاء
-
-عند وصول حدث inbound من نوع `task`:
-- يبحث عن وكلاء نشطين ومربوطين بذلك الموقع
-- يُنشئ سجلاً في `agent_tasks` ويعيّنه للوكيل الأنسب (حسب role)
-- عند اكتمال المهمة يُصدر حدثاً outbound للموقع الأصلي
-
-## 8) مراقبة الصحة (Heartbeat)
-
-- كل موقع يرسل `POST /api/public/hub/heartbeat` كل 30 ثانية
-- عمود `sites.last_heartbeat_at` يُحدَّث
-- View يحسب الحالة الحية → HUD العلوي يعرض "MESH: 12/15 ONLINE"
-
-## 9) سجل قابل للتدقيق
-
-كل حدث ودخول ومهمة يُسجَّل في `audit_log` مع actor/target للتحقيق لاحقاً.
-
-## 10) واجهة إعدادات التكامل لكل موقع
-
-في صفحة `/sites` → زر "تكامل" لكل موقع يفتح:
-- عرض api_key (مع Copy)
-- تدوير المفتاح
-- إدخال webhook_url
-- زر "اختبار الاتصال" يرسل حدث ping ويعرض النتيجة
-
----
-
-## البنية التقنية
-
-```text
-       ┌─────────────────────────────────┐
-       │      HN HUB (هذا الموقع)         │
-       │                                 │
-  ┌────┤  /api/public/hub/ingest  ◀──────┼── مواقع HN
-  │    │  /api/public/hub/heartbeat ◀────┼── (POST + HMAC)
-  │    │                                 │
-  │    │  hub_events (Realtime)          │
-  │    │  ├─ Dispatcher (pg_cron/1m)     │
-  │    │  ├─ Agent Router                │
-  │    │  └─ Mail Aggregator             │
-  │    │                                 │
-  │    │  /api/public/hub/dispatch ──────┼─▶ webhook_url لكل موقع
-  │    └─────────────────────────────────┘
-  │
-  └─ لوحات: /hub /inbox /agents /sites /events
-```
-
-## الجداول الجديدة
-
-- `hub_events` (ناقل الأحداث + Realtime)
-- `mail_messages` (البريد الموحد)
-- توسيع `sites` بـ: api_key, webhook_secret, webhook_url, last_heartbeat_at
-
-## الأمن
-
-- كل الجداول RLS مقيّدة لـ staff فقط
-- مسارات `/api/public/hub/*` تتحقق من `x-api-key` + توقيع `x-signature` (HMAC-SHA256)
-- المفاتيح تُخزَّن كـ hash؛ تُعرض القيمة الخام مرة واحدة عند الإنشاء
-
-## ترتيب التنفيذ المقترح
-
-1. توسيع sites + جدول hub_events + سياسات + Realtime
-2. مسارات ingest/heartbeat/dispatch
-3. صفحة /hub الرئيسية + Live Stream
-4. تكامل الوكلاء (توجيه المهام)
-5. البريد الموحد /inbox
-6. واجهة الإعدادات لكل موقع + اختبار الاتصال
-7. pg_cron للموزع
-
-هل نبدأ بالكامل، أم أُقسّمها لمراحل نُنفّذها واحدة تلو الأخرى؟
+اضغط **Implement plan** لأبدأ التنفيذ فوراً.

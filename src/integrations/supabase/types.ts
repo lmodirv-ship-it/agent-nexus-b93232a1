@@ -788,6 +788,41 @@ export type Database = {
           },
         ]
       }
+      sites_provisioning: {
+        Row: {
+          api_key: string
+          created_at: string
+          exported_at: string | null
+          id: string
+          site_id: string
+          webhook_secret: string
+        }
+        Insert: {
+          api_key: string
+          created_at?: string
+          exported_at?: string | null
+          id?: string
+          site_id: string
+          webhook_secret: string
+        }
+        Update: {
+          api_key?: string
+          created_at?: string
+          exported_at?: string | null
+          id?: string
+          site_id?: string
+          webhook_secret?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sites_provisioning_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       storage_folders: {
         Row: {
           created_at: string | null
