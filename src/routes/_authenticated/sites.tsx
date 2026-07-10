@@ -30,6 +30,7 @@ function SitesPage() {
   const qc = useQueryClient();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<string>("all");
+  const [integrationSite, setIntegrationSite] = useState<any | null>(null);
 
   const filtered = useMemo(() => sites.filter((s: any) => {
     const okS = filter === "all" ? true : s.status === filter;
