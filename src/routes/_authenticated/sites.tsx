@@ -31,13 +31,28 @@ function SitesPage() {
   const qc = useQueryClient();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<string>("all");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [serviceFilter, setServiceFilter] = useState<string>("all");
+  const [integFilter, setIntegFilter] = useState<string>("all");
   const [integrationSite, setIntegrationSite] = useState<any | null>(null);
+
+  const roleOptions = useMemo(() => Array.from(new Set(sites.map((s: any) => s.role).filter(Boolean))) as string[], [sites]);
+  const serviceOptions = useMemo(() => {
+    const set = new Set<string>();
+    sites.forEach((s: any) => (Array.isArray(s.services) ? s.services : []).forEach((x: string) => set.add(x)));
+    return Array.from(set).sort();
+  }, [sites]);
+  const integOptions = ["connected", "provisioned", "pending"];
 
   const filtered = useMemo(() => sites.filter((s: any) => {
     const okS = filter === "all" ? true : s.status === filter;
+    const okR = roleFilter === "all" ? true : s.role === roleFilter;
+    const okI = integFilter === "all" ? true : (s.integration_status ?? "pending") === integFilter;
+    const okSvc = serviceFilter === "all" ? true : (Array.isArray(s.services) && s.services.includes(serviceFilter));
     const q = query.trim().toLowerCase();
-    return okS && (!q || (s.domain ?? "").toLowerCase().includes(q) || (s.site_code ?? "").toLowerCase().includes(q) || (s.role ?? "").toLowerCase().includes(q));
-  }), [sites, filter, query]);
+    const okQ = !q || (s.domain ?? "").toLowerCase().includes(q) || (s.site_code ?? "").toLowerCase().includes(q) || (s.role ?? "").toLowerCase().includes(q);
+    return okS && okR && okI && okSvc && okQ;
+  }), [sites, filter, roleFilter, integFilter, serviceFilter, query]);
 
   const totals = {
     total: sites.length,
@@ -158,10 +173,10 @@ function SitesPage() {
       <div className="panel p-3 mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[220px]">
           <Search className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ابحث بالنطاق..."
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="ابحث بالنطاق / المعرّف / الدور..."
                  className="w-full bg-black/30 border border-white/10 rounded-lg pr-9 pl-3 py-2 text-sm outline-none focus:ring-2 focus:ring-cyan-neon/40" />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {["all", "online", "warning", "danger", "offline"].map((f) => (
             <button key={f} onClick={() => setFilter(f)}
                     className="px-3 py-1.5 rounded-lg text-xs font-semibold border transition"
@@ -174,10 +189,34 @@ function SitesPage() {
         </div>
       </div>
 
+      <div className="panel p-3 mb-4 grid gap-3 md:grid-cols-3">
+        <FilterSelect label="الدور" value={roleFilter} onChange={setRoleFilter} options={roleOptions} accent="#a78bfa" />
+        <FilterSelect label="الخدمة" value={serviceFilter} onChange={setServiceFilter} options={serviceOptions} accent="#22d3ee" />
+        <FilterSelect label="التكامل" value={integFilter} onChange={setIntegFilter} options={integOptions}
+                      accent="#fbbf24"
+                      labelMap={{ connected: "متصل", provisioned: "مُهيّأ", pending: "بانتظار" }} />
+      </div>
+
       <DataTable rows={filtered} columns={columns} />
       {integrationSite && (
         <SiteIntegrationModal site={integrationSite} onClose={() => setIntegrationSite(null)} />
       )}
     </div>
+  );
+}
+
+function FilterSelect({ label, value, onChange, options, accent, labelMap }: {
+  label: string; value: string; onChange: (v: string) => void; options: string[]; accent: string; labelMap?: Record<string, string>;
+}) {
+  return (
+    <label className="flex items-center gap-2 text-xs">
+      <span className="text-muted-foreground min-w-[52px]">{label}</span>
+      <select value={value} onChange={(e) => onChange(e.target.value)}
+              className="flex-1 bg-black/30 border rounded-lg px-2 py-1.5 text-slate-200 outline-none focus:ring-2"
+              style={{ borderColor: `${accent}55` }}>
+        <option value="all">الكل</option>
+        {options.map((o) => <option key={o} value={o}>{labelMap?.[o] ?? o}</option>)}
+      </select>
+    </label>
   );
 }
