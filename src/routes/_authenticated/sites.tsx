@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useSuspenseQuery, queryOptions, useQueryClient } from "@tanstack/react-query";
-import { Globe, Plus, Search, ExternalLink, Trash2, Users, HardDrive, Mail, KeyRound, Hash, Activity, Layers } from "lucide-react";
+import { Globe, Plus, Search, ExternalLink, Trash2, Users, HardDrive, Mail, KeyRound, Hash, Activity, Layers, Tag } from "lucide-react";
 import { PageHeader, NeonButton, StatusPill } from "@/components/dashboard/PageHeader";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
-import { listSites, deleteSite, upsertSite } from "@/lib/queries.functions";
+import { listSites, deleteSite, upsertSite, listSiteCategories } from "@/lib/queries.functions";
 import { SiteIntegrationModal } from "@/components/dashboard/SiteIntegrationModal";
 import { ExportKeysBanner } from "@/components/dashboard/ExportKeysBanner";
 
 const sitesQ = queryOptions({ queryKey: ["sites"], queryFn: () => listSites() });
+const catsQ = queryOptions({ queryKey: ["site_categories"], queryFn: () => listSiteCategories() });
 
 export const Route = createFileRoute("/_authenticated/sites")({
   head: () => ({ meta: [{ title: "المواقع — SUPER ADMIN" }, { name: "description", content: "إدارة جميع المواقع من مكان واحد." }] }),
