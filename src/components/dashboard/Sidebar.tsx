@@ -11,7 +11,7 @@ const groups = [
     items: [
       { to: "/", label: "الرئيسية", icon: LayoutDashboard, badge: null },
       { to: "/hub", label: "قلب المجموعة", icon: Radio, badge: "LIVE" },
-      { to: "/hub/sdk", label: "SDK للمواقع", icon: Code2, badge: null },
+      { to: "/hub-sdk", label: "SDK للمواقع", icon: Code2, badge: null },
       { to: "/inbox", label: "البريد الموحد", icon: Mail, badge: null },
     ],
   },

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Code2, Copy, Check } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 
-export const Route = createFileRoute("/_authenticated/hub/sdk")({
+export const Route = createFileRoute("/_authenticated/hub-sdk")({
   head: () => ({ meta: [{ title: "HN Hub SDK — SUPER ADMIN" }] }),
   component: SdkPage,
 });

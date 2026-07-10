@@ -29,6 +29,7 @@ import { Route as AuthenticatedAiCommandRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated/agents'
 import { Route as AuthenticatedSecurityAttemptsRouteImport } from './routes/_authenticated/security.attempts'
 import { Route as AuthenticatedSecurityApiKeysRouteImport } from './routes/_authenticated/security.api-keys'
+import { Route as AuthenticatedHubSdkRouteImport } from './routes/_authenticated/hub.sdk'
 import { Route as AuthenticatedAgentsAgentIdRouteImport } from './routes/_authenticated/agents.$agentId'
 import { Route as ApiPublicHubIngestRouteImport } from './routes/api/public/hub/ingest'
 import { Route as ApiPublicHubHeartbeatRouteImport } from './routes/api/public/hub/heartbeat'
@@ -136,6 +137,11 @@ const AuthenticatedSecurityApiKeysRoute =
     path: '/api-keys',
     getParentRoute: () => AuthenticatedSecurityRoute,
   } as any)
+const AuthenticatedHubSdkRoute = AuthenticatedHubSdkRouteImport.update({
+  id: '/sdk',
+  path: '/sdk',
+  getParentRoute: () => AuthenticatedHubRoute,
+} as any)
 const AuthenticatedAgentsAgentIdRoute =
   AuthenticatedAgentsAgentIdRouteImport.update({
     id: '/$agentId',
@@ -168,7 +174,7 @@ export interface FileRoutesByFullPath {
   '/clients': typeof AuthenticatedClientsRoute
   '/databases': typeof AuthenticatedDatabasesRoute
   '/folders': typeof AuthenticatedFoldersRoute
-  '/hub': typeof AuthenticatedHubRoute
+  '/hub': typeof AuthenticatedHubRouteWithChildren
   '/inbox': typeof AuthenticatedInboxRoute
   '/performance': typeof AuthenticatedPerformanceRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/sites': typeof AuthenticatedSitesRoute
   '/storage': typeof AuthenticatedStorageRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
+  '/hub/sdk': typeof AuthenticatedHubSdkRoute
   '/security/api-keys': typeof AuthenticatedSecurityApiKeysRoute
   '/security/attempts': typeof AuthenticatedSecurityAttemptsRoute
   '/api/public/hub/dispatch': typeof ApiPublicHubDispatchRoute
@@ -192,7 +199,7 @@ export interface FileRoutesByTo {
   '/clients': typeof AuthenticatedClientsRoute
   '/databases': typeof AuthenticatedDatabasesRoute
   '/folders': typeof AuthenticatedFoldersRoute
-  '/hub': typeof AuthenticatedHubRoute
+  '/hub': typeof AuthenticatedHubRouteWithChildren
   '/inbox': typeof AuthenticatedInboxRoute
   '/performance': typeof AuthenticatedPerformanceRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
@@ -202,6 +209,7 @@ export interface FileRoutesByTo {
   '/storage': typeof AuthenticatedStorageRoute
   '/': typeof AuthenticatedIndexRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
+  '/hub/sdk': typeof AuthenticatedHubSdkRoute
   '/security/api-keys': typeof AuthenticatedSecurityApiKeysRoute
   '/security/attempts': typeof AuthenticatedSecurityAttemptsRoute
   '/api/public/hub/dispatch': typeof ApiPublicHubDispatchRoute
@@ -219,7 +227,7 @@ export interface FileRoutesById {
   '/_authenticated/clients': typeof AuthenticatedClientsRoute
   '/_authenticated/databases': typeof AuthenticatedDatabasesRoute
   '/_authenticated/folders': typeof AuthenticatedFoldersRoute
-  '/_authenticated/hub': typeof AuthenticatedHubRoute
+  '/_authenticated/hub': typeof AuthenticatedHubRouteWithChildren
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
   '/_authenticated/performance': typeof AuthenticatedPerformanceRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRouteWithChildren
@@ -229,6 +237,7 @@ export interface FileRoutesById {
   '/_authenticated/storage': typeof AuthenticatedStorageRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
+  '/_authenticated/hub/sdk': typeof AuthenticatedHubSdkRoute
   '/_authenticated/security/api-keys': typeof AuthenticatedSecurityApiKeysRoute
   '/_authenticated/security/attempts': typeof AuthenticatedSecurityAttemptsRoute
   '/api/public/hub/dispatch': typeof ApiPublicHubDispatchRoute
@@ -256,6 +265,7 @@ export interface FileRouteTypes {
     | '/sites'
     | '/storage'
     | '/agents/$agentId'
+    | '/hub/sdk'
     | '/security/api-keys'
     | '/security/attempts'
     | '/api/public/hub/dispatch'
@@ -281,6 +291,7 @@ export interface FileRouteTypes {
     | '/storage'
     | '/'
     | '/agents/$agentId'
+    | '/hub/sdk'
     | '/security/api-keys'
     | '/security/attempts'
     | '/api/public/hub/dispatch'
@@ -307,6 +318,7 @@ export interface FileRouteTypes {
     | '/_authenticated/storage'
     | '/_authenticated/'
     | '/_authenticated/agents/$agentId'
+    | '/_authenticated/hub/sdk'
     | '/_authenticated/security/api-keys'
     | '/_authenticated/security/attempts'
     | '/api/public/hub/dispatch'
@@ -464,6 +476,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSecurityApiKeysRouteImport
       parentRoute: typeof AuthenticatedSecurityRoute
     }
+    '/_authenticated/hub/sdk': {
+      id: '/_authenticated/hub/sdk'
+      path: '/sdk'
+      fullPath: '/hub/sdk'
+      preLoaderRoute: typeof AuthenticatedHubSdkRouteImport
+      parentRoute: typeof AuthenticatedHubRoute
+    }
     '/_authenticated/agents/$agentId': {
       id: '/_authenticated/agents/$agentId'
       path: '/$agentId'
@@ -506,6 +525,17 @@ const AuthenticatedAgentsRouteChildren: AuthenticatedAgentsRouteChildren = {
 const AuthenticatedAgentsRouteWithChildren =
   AuthenticatedAgentsRoute._addFileChildren(AuthenticatedAgentsRouteChildren)
 
+interface AuthenticatedHubRouteChildren {
+  AuthenticatedHubSdkRoute: typeof AuthenticatedHubSdkRoute
+}
+
+const AuthenticatedHubRouteChildren: AuthenticatedHubRouteChildren = {
+  AuthenticatedHubSdkRoute: AuthenticatedHubSdkRoute,
+}
+
+const AuthenticatedHubRouteWithChildren =
+  AuthenticatedHubRoute._addFileChildren(AuthenticatedHubRouteChildren)
+
 interface AuthenticatedSecurityRouteChildren {
   AuthenticatedSecurityApiKeysRoute: typeof AuthenticatedSecurityApiKeysRoute
   AuthenticatedSecurityAttemptsRoute: typeof AuthenticatedSecurityAttemptsRoute
@@ -529,7 +559,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
   AuthenticatedDatabasesRoute: typeof AuthenticatedDatabasesRoute
   AuthenticatedFoldersRoute: typeof AuthenticatedFoldersRoute
-  AuthenticatedHubRoute: typeof AuthenticatedHubRoute
+  AuthenticatedHubRoute: typeof AuthenticatedHubRouteWithChildren
   AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
   AuthenticatedPerformanceRoute: typeof AuthenticatedPerformanceRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRouteWithChildren
@@ -548,7 +578,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClientsRoute: AuthenticatedClientsRoute,
   AuthenticatedDatabasesRoute: AuthenticatedDatabasesRoute,
   AuthenticatedFoldersRoute: AuthenticatedFoldersRoute,
-  AuthenticatedHubRoute: AuthenticatedHubRoute,
+  AuthenticatedHubRoute: AuthenticatedHubRouteWithChildren,
   AuthenticatedInboxRoute: AuthenticatedInboxRoute,
   AuthenticatedPerformanceRoute: AuthenticatedPerformanceRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRouteWithChildren,
