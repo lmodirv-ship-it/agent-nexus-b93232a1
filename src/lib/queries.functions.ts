@@ -188,8 +188,28 @@ export const deleteClient = createServerFn({ method: "POST" })
 export const listSites = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data } = await context.supabase.from("sites").select("*, clients(name)").order("created_at", { ascending: false });
+    const { data } = await context.supabase.from("sites").select("*, clients(name), site_categories(id, name, color, code_prefix)").order("created_at", { ascending: false });
     return data ?? [];
+  });
+
+export const listSiteCategories = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const [catsRes, sitesRes] = await Promise.all([
+      context.supabase.from("site_categories").select("*").order("id"),
+      context.supabase.from("sites").select("category_id, status, users_count, activity_rate"),
+    ]);
+    const sites = sitesRes.data ?? [];
+    return (catsRes.data ?? []).map((c: any) => {
+      const mine = sites.filter((s: any) => s.category_id === c.id);
+      return {
+        ...c,
+        actual: mine.length,
+        online: mine.filter((s: any) => s.status === "online").length,
+        users: mine.reduce((a: number, s: any) => a + (s.users_count ?? 0), 0),
+        avg_activity: mine.length ? Math.round(mine.reduce((a: number, s: any) => a + Number(s.activity_rate ?? 0), 0) / mine.length) : 0,
+      };
+    });
   });
 
 export const upsertSite = createServerFn({ method: "POST" })

@@ -1,18 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useSuspenseQuery, queryOptions, useQueryClient } from "@tanstack/react-query";
-import { Globe, Plus, Search, ExternalLink, Trash2, Users, HardDrive, Mail, KeyRound, Hash, Activity, Layers } from "lucide-react";
+import { Globe, Plus, Search, ExternalLink, Trash2, Users, HardDrive, Mail, KeyRound, Hash, Activity, Layers, Tag } from "lucide-react";
 import { PageHeader, NeonButton, StatusPill } from "@/components/dashboard/PageHeader";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
-import { listSites, deleteSite, upsertSite } from "@/lib/queries.functions";
+import { listSites, deleteSite, upsertSite, listSiteCategories } from "@/lib/queries.functions";
 import { SiteIntegrationModal } from "@/components/dashboard/SiteIntegrationModal";
 import { ExportKeysBanner } from "@/components/dashboard/ExportKeysBanner";
 
 const sitesQ = queryOptions({ queryKey: ["sites"], queryFn: () => listSites() });
+const catsQ = queryOptions({ queryKey: ["site_categories"], queryFn: () => listSiteCategories() });
 
 export const Route = createFileRoute("/_authenticated/sites")({
   head: () => ({ meta: [{ title: "المواقع — SUPER ADMIN" }, { name: "description", content: "إدارة جميع المواقع من مكان واحد." }] }),
-  loader: ({ context }) => context.queryClient.ensureQueryData(sitesQ),
+  loader: ({ context }) => Promise.all([
+    context.queryClient.ensureQueryData(sitesQ),
+    context.queryClient.ensureQueryData(catsQ),
+  ]),
   component: SitesPage,
   errorComponent: ({ error }) => <div className="panel p-6">{error.message}</div>,
   notFoundComponent: () => <div className="panel p-6">غير موجود</div>,
@@ -28,12 +32,14 @@ const STATUS: Record<string, { label: string; hex: string }> = {
 
 function SitesPage() {
   const { data: sites } = useSuspenseQuery(sitesQ);
+  const { data: categories } = useSuspenseQuery(catsQ);
   const qc = useQueryClient();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<string>("all");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [serviceFilter, setServiceFilter] = useState<string>("all");
   const [integFilter, setIntegFilter] = useState<string>("all");
+  const [catFilter, setCatFilter] = useState<number | "all">("all");
   const [integrationSite, setIntegrationSite] = useState<any | null>(null);
 
   const roleOptions = useMemo(() => Array.from(new Set(sites.map((s: any) => s.role).filter(Boolean))) as string[], [sites]);
@@ -49,10 +55,11 @@ function SitesPage() {
     const okR = roleFilter === "all" ? true : s.role === roleFilter;
     const okI = integFilter === "all" ? true : (s.integration_status ?? "pending") === integFilter;
     const okSvc = serviceFilter === "all" ? true : (Array.isArray(s.services) && s.services.includes(serviceFilter));
+    const okC = catFilter === "all" ? true : s.category_id === catFilter;
     const q = query.trim().toLowerCase();
     const okQ = !q || (s.domain ?? "").toLowerCase().includes(q) || (s.site_code ?? "").toLowerCase().includes(q) || (s.role ?? "").toLowerCase().includes(q);
-    return okS && okR && okI && okSvc && okQ;
-  }), [sites, filter, roleFilter, integFilter, serviceFilter, query]);
+    return okS && okR && okI && okSvc && okC && okQ;
+  }), [sites, filter, roleFilter, integFilter, serviceFilter, catFilter, query]);
 
   const totals = {
     total: sites.length,
@@ -83,6 +90,16 @@ function SitesPage() {
     { key: "code", header: "المعرف", cell: (s) => (
       <div className="flex items-center gap-1 text-[11px] font-mono text-cyan-neon"><Hash className="w-3 h-3" />{s.site_code ?? "—"}</div>
     )},
+    { key: "category", header: "التصنيف", cell: (s) => {
+      const c = s.site_categories;
+      if (!c) return <span className="text-xs text-muted-foreground">—</span>;
+      return (
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border inline-flex items-center gap-1"
+          style={{ color: c.color, borderColor: `${c.color}55`, background: `${c.color}15` }}>
+          <Tag className="w-2.5 h-2.5" />{c.name}
+        </span>
+      );
+    }},
     { key: "site", header: "الموقع", cell: (s) => {
       const hex = s.icon_color ?? "#22d3ee";
       return (
@@ -169,6 +186,39 @@ function SitesPage() {
         actions={<NeonButton icon={Plus}>إضافة موقع</NeonButton>} />
 
       <ExportKeysBanner />
+
+      <div className="panel p-3 mb-4">
+        <div className="flex items-center justify-between mb-2 text-xs text-muted-foreground">
+          <span className="font-semibold text-slate-200 flex items-center gap-1"><Tag className="w-3.5 h-3.5" /> تصنيفات المجموعة</span>
+          <button onClick={() => setCatFilter("all")} className={`text-[11px] px-2 py-0.5 rounded ${catFilter === "all" ? "bg-cyan-neon/20 text-cyan-neon" : "text-muted-foreground hover:text-slate-200"}`}>الكل ({sites.length})</button>
+        </div>
+        <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2">
+          {categories.map((c: any) => {
+            const pct = c.target_count > 0 ? Math.min(100, Math.round((c.actual / c.target_count) * 100)) : 0;
+            const active = catFilter === c.id;
+            return (
+              <button key={c.id} onClick={() => setCatFilter(active ? "all" : c.id)}
+                className="text-right rounded-lg p-2 border transition text-xs"
+                style={{
+                  borderColor: active ? c.color : `${c.color}33`,
+                  background: active ? `${c.color}22` : "rgba(255,255,255,0.02)",
+                  boxShadow: active ? `0 0 14px ${c.color}66` : "none",
+                }}>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="font-mono text-[10px] opacity-70" style={{ color: c.color }}>{c.code_prefix}·</span>
+                  <span className="tabular-nums text-[11px] font-bold" style={{ color: c.color }}>{c.actual}<span className="opacity-60 text-[9px]">/{c.target_count}</span></span>
+                </div>
+                <div className="text-[11px] text-slate-200 leading-tight mt-1 line-clamp-2">{c.name}</div>
+                <div className="mt-1.5 h-1 rounded-full bg-white/5 overflow-hidden">
+                  <div className="h-full rounded-full" style={{ width: `${pct}%`, background: c.color, boxShadow: `0 0 6px ${c.color}` }} />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+
 
       <div className="panel p-3 mb-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[220px]">
