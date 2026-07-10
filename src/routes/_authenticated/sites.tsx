@@ -32,12 +32,14 @@ const STATUS: Record<string, { label: string; hex: string }> = {
 
 function SitesPage() {
   const { data: sites } = useSuspenseQuery(sitesQ);
+  const { data: categories } = useSuspenseQuery(catsQ);
   const qc = useQueryClient();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<string>("all");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [serviceFilter, setServiceFilter] = useState<string>("all");
   const [integFilter, setIntegFilter] = useState<string>("all");
+  const [catFilter, setCatFilter] = useState<number | "all">("all");
   const [integrationSite, setIntegrationSite] = useState<any | null>(null);
 
   const roleOptions = useMemo(() => Array.from(new Set(sites.map((s: any) => s.role).filter(Boolean))) as string[], [sites]);
@@ -53,10 +55,11 @@ function SitesPage() {
     const okR = roleFilter === "all" ? true : s.role === roleFilter;
     const okI = integFilter === "all" ? true : (s.integration_status ?? "pending") === integFilter;
     const okSvc = serviceFilter === "all" ? true : (Array.isArray(s.services) && s.services.includes(serviceFilter));
+    const okC = catFilter === "all" ? true : s.category_id === catFilter;
     const q = query.trim().toLowerCase();
     const okQ = !q || (s.domain ?? "").toLowerCase().includes(q) || (s.site_code ?? "").toLowerCase().includes(q) || (s.role ?? "").toLowerCase().includes(q);
-    return okS && okR && okI && okSvc && okQ;
-  }), [sites, filter, roleFilter, integFilter, serviceFilter, query]);
+    return okS && okR && okI && okSvc && okC && okQ;
+  }), [sites, filter, roleFilter, integFilter, serviceFilter, catFilter, query]);
 
   const totals = {
     total: sites.length,
