@@ -58,7 +58,16 @@ function SitesPage() {
     qc.invalidateQueries({ queryKey: ["sites"] });
   };
 
+  const INTEG: Record<string, { label: string; hex: string }> = {
+    connected: { label: "متصل", hex: "#22d3ee" },
+    provisioned: { label: "مُهيّأ", hex: "#a78bfa" },
+    pending: { label: "بانتظار", hex: "#94a3b8" },
+  };
+
   const columns: Column<any>[] = [
+    { key: "code", header: "المعرف", cell: (s) => (
+      <div className="flex items-center gap-1 text-[11px] font-mono text-cyan-neon"><Hash className="w-3 h-3" />{s.site_code ?? "—"}</div>
+    )},
     { key: "site", header: "الموقع", cell: (s) => {
       const hex = s.icon_color ?? "#22d3ee";
       return (
@@ -77,24 +86,61 @@ function SitesPage() {
       );
     }},
     { key: "status", header: "الحالة", cell: (s) => <StatusPill label={STATUS[s.status]?.label ?? s.status} hex={STATUS[s.status]?.hex ?? "#94a3b8"} /> },
+    { key: "role", header: "الدور", cell: (s) => <span className="text-xs text-slate-200">{s.role ?? "—"}</span> },
+    { key: "services", header: "الخدمات", cell: (s) => {
+      const list: string[] = Array.isArray(s.services) ? s.services : [];
+      return (
+        <div className="flex flex-wrap gap-1 max-w-[180px]">
+          {list.length === 0 ? <span className="text-xs text-muted-foreground">—</span> :
+            list.slice(0, 3).map((x) => (
+              <span key={x} className="text-[10px] px-1.5 py-0.5 rounded border border-white/10 text-slate-300 flex items-center gap-1">
+                <Layers className="w-2.5 h-2.5" />{x}
+              </span>
+            ))}
+          {list.length > 3 && <span className="text-[10px] text-muted-foreground">+{list.length - 3}</span>}
+        </div>
+      );
+    }},
     { key: "users", header: "المستخدمون", cell: (s) => (
       <div className="flex items-center gap-1.5 text-slate-200"><Users className="w-3.5 h-3.5 text-cyan-neon" />{(s.users_count ?? 0).toLocaleString("en-US")}</div>
     )},
-    { key: "db", header: "DB", cell: (s) => <span className="text-slate-300 text-xs">{Number(s.db_size_gb ?? 0)} GB</span> },
+    { key: "db", header: "DB", cell: (s) => (
+      <div className="text-xs">
+        <div className="text-slate-200 font-mono">{s.db_name ?? "—"}</div>
+        <div className="text-[10px] text-muted-foreground">{Number(s.db_size_gb ?? 0)} GB</div>
+      </div>
+    )},
     { key: "storage", header: "التخزين", cell: (s) => (
       <div className="flex items-center gap-1.5 text-slate-200"><HardDrive className="w-3.5 h-3.5 text-violet-neon" />{Number(s.storage_gb ?? 0)} GB</div>
     )},
     { key: "email", header: "بريد التشغيل", cell: (s) => (
       <button onClick={() => handleEmail(s)} className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-lg border border-white/10 hover:border-cyan-neon/50 transition text-slate-300 hover:text-cyan-neon" title="ربط بريد للموقع">
         <Mail className="w-3.5 h-3.5" />
-        <span className="max-w-[160px] truncate">{s.email ?? "— ربط بريد —"}</span>
+        <span className="max-w-[140px] truncate">{s.email ?? "— ربط بريد —"}</span>
       </button>
     )},
-    { key: "integrate", header: "تكامل", cell: (s) => (
-      <button onClick={() => setIntegrationSite(s)} className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-lg border border-white/10 hover:border-amber-400/50 text-slate-300 hover:text-amber-300 transition" title="مفاتيح API و webhook">
-        <KeyRound className="w-3.5 h-3.5" /> Hub
-      </button>
-    )},
+    { key: "integrate", header: "التكامل", cell: (s) => {
+      const i = INTEG[s.integration_status ?? "pending"] ?? INTEG.pending;
+      return (
+        <button onClick={() => setIntegrationSite(s)} className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-lg border transition"
+          style={{ borderColor: `${i.hex}55`, color: i.hex }} title="مفاتيح API و webhook">
+          <KeyRound className="w-3.5 h-3.5" /> {i.label}
+        </button>
+      );
+    }},
+    { key: "activity", header: "النشاط", cell: (s) => {
+      const rate = Math.max(0, Math.min(100, Number(s.activity_rate ?? 0)));
+      const hex = rate > 70 ? "#22d3ee" : rate > 30 ? "#fbbf24" : "#64748b";
+      return (
+        <div className="flex items-center gap-2 min-w-[110px]">
+          <Activity className="w-3.5 h-3.5" style={{ color: hex }} />
+          <div className="flex-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
+            <div className="h-full rounded-full" style={{ width: `${rate}%`, background: hex, boxShadow: `0 0 8px ${hex}88` }} />
+          </div>
+          <span className="text-[10px] text-slate-300 tabular-nums w-8 text-left">{rate}%</span>
+        </div>
+      );
+    }},
     { key: "act", header: "", cell: (s) => (
       <button onClick={() => handleDelete(s.id)} className="w-8 h-8 rounded-lg grid place-items-center border border-white/10 hover:border-rose-neon/50 text-slate-300 hover:text-rose-neon transition" title="حذف">
         <Trash2 className="w-3.5 h-3.5" />
