@@ -2,14 +2,11 @@ import { useEffect, useState } from "react";
 import { Activity, Cpu, Radio, ShieldCheck, Terminal, Zap } from "lucide-react";
 
 export function LabHUD() {
-  const [now, setNow] = useState<string>(() =>
-    new Date().toLocaleTimeString("en-GB", { hour12: false })
-  );
+  const [now, setNow] = useState<string>("--:--:--");
   useEffect(() => {
-    const id = setInterval(
-      () => setNow(new Date().toLocaleTimeString("en-GB", { hour12: false })),
-      1000
-    );
+    const tick = () => setNow(new Date().toLocaleTimeString("en-GB", { hour12: false }));
+    tick();
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, []);
 

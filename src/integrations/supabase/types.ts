@@ -420,6 +420,113 @@ export type Database = {
           },
         ]
       }
+      hub_events: {
+        Row: {
+          agent_id: string | null
+          attempts: number
+          created_at: string
+          delivered_at: string | null
+          direction: string
+          error: string | null
+          id: string
+          payload: Json
+          site_id: string | null
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id?: string | null
+          attempts?: number
+          created_at?: string
+          delivered_at?: string | null
+          direction: string
+          error?: string | null
+          id?: string
+          payload?: Json
+          site_id?: string | null
+          status?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string | null
+          attempts?: number
+          created_at?: string
+          delivered_at?: string | null
+          direction?: string
+          error?: string | null
+          id?: string
+          payload?: Json
+          site_id?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hub_events_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hub_events_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mail_messages: {
+        Row: {
+          body: string | null
+          created_at: string
+          direction: string
+          from_addr: string
+          id: string
+          read_at: string | null
+          site_id: string | null
+          subject: string | null
+          to_addr: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          direction: string
+          from_addr: string
+          id?: string
+          read_at?: string | null
+          site_id?: string | null
+          subject?: string | null
+          to_addr: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          direction?: string
+          from_addr?: string
+          id?: string
+          read_at?: string | null
+          site_id?: string | null
+          subject?: string | null
+          to_addr?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mail_messages_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -618,43 +725,58 @@ export type Database = {
       }
       sites: {
         Row: {
+          api_key_hash: string | null
           client_id: string | null
           created_at: string | null
           db_size_gb: number | null
           domain: string
           email: string | null
+          health: string
           icon_color: string | null
           id: string
+          last_heartbeat_at: string | null
           status: string
           storage_gb: number | null
           updated_at: string
           users_count: number | null
+          webhook_secret: string | null
+          webhook_url: string | null
         }
         Insert: {
+          api_key_hash?: string | null
           client_id?: string | null
           created_at?: string | null
           db_size_gb?: number | null
           domain: string
           email?: string | null
+          health?: string
           icon_color?: string | null
           id?: string
+          last_heartbeat_at?: string | null
           status?: string
           storage_gb?: number | null
           updated_at?: string
           users_count?: number | null
+          webhook_secret?: string | null
+          webhook_url?: string | null
         }
         Update: {
+          api_key_hash?: string | null
           client_id?: string | null
           created_at?: string | null
           db_size_gb?: number | null
           domain?: string
           email?: string | null
+          health?: string
           icon_color?: string | null
           id?: string
+          last_heartbeat_at?: string | null
           status?: string
           storage_gb?: number | null
           updated_at?: string
           users_count?: number | null
+          webhook_secret?: string | null
+          webhook_url?: string | null
         }
         Relationships: [
           {

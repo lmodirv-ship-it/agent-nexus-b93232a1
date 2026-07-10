@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useSuspenseQuery, queryOptions, useQueryClient } from "@tanstack/react-query";
-import { Globe, Plus, Search, ExternalLink, Trash2, Users, HardDrive, Mail } from "lucide-react";
+import { Globe, Plus, Search, ExternalLink, Trash2, Users, HardDrive, Mail, KeyRound } from "lucide-react";
 import { PageHeader, NeonButton, StatusPill } from "@/components/dashboard/PageHeader";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { listSites, deleteSite, upsertSite } from "@/lib/queries.functions";
+import { SiteIntegrationModal } from "@/components/dashboard/SiteIntegrationModal";
 
 const sitesQ = queryOptions({ queryKey: ["sites"], queryFn: () => listSites() });
 
@@ -29,6 +30,7 @@ function SitesPage() {
   const qc = useQueryClient();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<string>("all");
+  const [integrationSite, setIntegrationSite] = useState<any | null>(null);
 
   const filtered = useMemo(() => sites.filter((s: any) => {
     const okS = filter === "all" ? true : s.status === filter;
@@ -87,6 +89,11 @@ function SitesPage() {
         <span className="max-w-[160px] truncate">{s.email ?? "— ربط بريد —"}</span>
       </button>
     )},
+    { key: "integrate", header: "تكامل", cell: (s) => (
+      <button onClick={() => setIntegrationSite(s)} className="flex items-center gap-1.5 text-xs px-2 py-1 rounded-lg border border-white/10 hover:border-amber-400/50 text-slate-300 hover:text-amber-300 transition" title="مفاتيح API و webhook">
+        <KeyRound className="w-3.5 h-3.5" /> Hub
+      </button>
+    )},
     { key: "act", header: "", cell: (s) => (
       <button onClick={() => handleDelete(s.id)} className="w-8 h-8 rounded-lg grid place-items-center border border-white/10 hover:border-rose-neon/50 text-slate-300 hover:text-rose-neon transition" title="حذف">
         <Trash2 className="w-3.5 h-3.5" />
@@ -119,6 +126,9 @@ function SitesPage() {
       </div>
 
       <DataTable rows={filtered} columns={columns} />
+      {integrationSite && (
+        <SiteIntegrationModal site={integrationSite} onClose={() => setIntegrationSite(null)} />
+      )}
     </div>
   );
 }

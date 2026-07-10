@@ -18,6 +18,8 @@ import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedServicesRouteImport } from './routes/_authenticated/services'
 import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
 import { Route as AuthenticatedPerformanceRouteImport } from './routes/_authenticated/performance'
+import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated/inbox'
+import { Route as AuthenticatedHubRouteImport } from './routes/_authenticated/hub'
 import { Route as AuthenticatedFoldersRouteImport } from './routes/_authenticated/folders'
 import { Route as AuthenticatedDatabasesRouteImport } from './routes/_authenticated/databases'
 import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated/clients'
@@ -28,6 +30,9 @@ import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedSecurityAttemptsRouteImport } from './routes/_authenticated/security.attempts'
 import { Route as AuthenticatedSecurityApiKeysRouteImport } from './routes/_authenticated/security.api-keys'
 import { Route as AuthenticatedAgentsAgentIdRouteImport } from './routes/_authenticated/agents.$agentId'
+import { Route as ApiPublicHubIngestRouteImport } from './routes/api/public/hub/ingest'
+import { Route as ApiPublicHubHeartbeatRouteImport } from './routes/api/public/hub/heartbeat'
+import { Route as ApiPublicHubDispatchRouteImport } from './routes/api/public/hub/dispatch'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -74,6 +79,16 @@ const AuthenticatedPerformanceRoute =
     path: '/performance',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedInboxRoute = AuthenticatedInboxRouteImport.update({
+  id: '/inbox',
+  path: '/inbox',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHubRoute = AuthenticatedHubRouteImport.update({
+  id: '/hub',
+  path: '/hub',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedFoldersRoute = AuthenticatedFoldersRouteImport.update({
   id: '/folders',
   path: '/folders',
@@ -127,6 +142,21 @@ const AuthenticatedAgentsAgentIdRoute =
     path: '/$agentId',
     getParentRoute: () => AuthenticatedAgentsRoute,
   } as any)
+const ApiPublicHubIngestRoute = ApiPublicHubIngestRouteImport.update({
+  id: '/api/public/hub/ingest',
+  path: '/api/public/hub/ingest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHubHeartbeatRoute = ApiPublicHubHeartbeatRouteImport.update({
+  id: '/api/public/hub/heartbeat',
+  path: '/api/public/hub/heartbeat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHubDispatchRoute = ApiPublicHubDispatchRouteImport.update({
+  id: '/api/public/hub/dispatch',
+  path: '/api/public/hub/dispatch',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -138,6 +168,8 @@ export interface FileRoutesByFullPath {
   '/clients': typeof AuthenticatedClientsRoute
   '/databases': typeof AuthenticatedDatabasesRoute
   '/folders': typeof AuthenticatedFoldersRoute
+  '/hub': typeof AuthenticatedHubRoute
+  '/inbox': typeof AuthenticatedInboxRoute
   '/performance': typeof AuthenticatedPerformanceRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
   '/services': typeof AuthenticatedServicesRoute
@@ -147,6 +179,9 @@ export interface FileRoutesByFullPath {
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/security/api-keys': typeof AuthenticatedSecurityApiKeysRoute
   '/security/attempts': typeof AuthenticatedSecurityAttemptsRoute
+  '/api/public/hub/dispatch': typeof ApiPublicHubDispatchRoute
+  '/api/public/hub/heartbeat': typeof ApiPublicHubHeartbeatRoute
+  '/api/public/hub/ingest': typeof ApiPublicHubIngestRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -157,6 +192,8 @@ export interface FileRoutesByTo {
   '/clients': typeof AuthenticatedClientsRoute
   '/databases': typeof AuthenticatedDatabasesRoute
   '/folders': typeof AuthenticatedFoldersRoute
+  '/hub': typeof AuthenticatedHubRoute
+  '/inbox': typeof AuthenticatedInboxRoute
   '/performance': typeof AuthenticatedPerformanceRoute
   '/security': typeof AuthenticatedSecurityRouteWithChildren
   '/services': typeof AuthenticatedServicesRoute
@@ -167,6 +204,9 @@ export interface FileRoutesByTo {
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/security/api-keys': typeof AuthenticatedSecurityApiKeysRoute
   '/security/attempts': typeof AuthenticatedSecurityAttemptsRoute
+  '/api/public/hub/dispatch': typeof ApiPublicHubDispatchRoute
+  '/api/public/hub/heartbeat': typeof ApiPublicHubHeartbeatRoute
+  '/api/public/hub/ingest': typeof ApiPublicHubIngestRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -179,6 +219,8 @@ export interface FileRoutesById {
   '/_authenticated/clients': typeof AuthenticatedClientsRoute
   '/_authenticated/databases': typeof AuthenticatedDatabasesRoute
   '/_authenticated/folders': typeof AuthenticatedFoldersRoute
+  '/_authenticated/hub': typeof AuthenticatedHubRoute
+  '/_authenticated/inbox': typeof AuthenticatedInboxRoute
   '/_authenticated/performance': typeof AuthenticatedPerformanceRoute
   '/_authenticated/security': typeof AuthenticatedSecurityRouteWithChildren
   '/_authenticated/services': typeof AuthenticatedServicesRoute
@@ -189,6 +231,9 @@ export interface FileRoutesById {
   '/_authenticated/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/_authenticated/security/api-keys': typeof AuthenticatedSecurityApiKeysRoute
   '/_authenticated/security/attempts': typeof AuthenticatedSecurityAttemptsRoute
+  '/api/public/hub/dispatch': typeof ApiPublicHubDispatchRoute
+  '/api/public/hub/heartbeat': typeof ApiPublicHubHeartbeatRoute
+  '/api/public/hub/ingest': typeof ApiPublicHubIngestRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -202,6 +247,8 @@ export interface FileRouteTypes {
     | '/clients'
     | '/databases'
     | '/folders'
+    | '/hub'
+    | '/inbox'
     | '/performance'
     | '/security'
     | '/services'
@@ -211,6 +258,9 @@ export interface FileRouteTypes {
     | '/agents/$agentId'
     | '/security/api-keys'
     | '/security/attempts'
+    | '/api/public/hub/dispatch'
+    | '/api/public/hub/heartbeat'
+    | '/api/public/hub/ingest'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -221,6 +271,8 @@ export interface FileRouteTypes {
     | '/clients'
     | '/databases'
     | '/folders'
+    | '/hub'
+    | '/inbox'
     | '/performance'
     | '/security'
     | '/services'
@@ -231,6 +283,9 @@ export interface FileRouteTypes {
     | '/agents/$agentId'
     | '/security/api-keys'
     | '/security/attempts'
+    | '/api/public/hub/dispatch'
+    | '/api/public/hub/heartbeat'
+    | '/api/public/hub/ingest'
   id:
     | '__root__'
     | '/_authenticated'
@@ -242,6 +297,8 @@ export interface FileRouteTypes {
     | '/_authenticated/clients'
     | '/_authenticated/databases'
     | '/_authenticated/folders'
+    | '/_authenticated/hub'
+    | '/_authenticated/inbox'
     | '/_authenticated/performance'
     | '/_authenticated/security'
     | '/_authenticated/services'
@@ -252,11 +309,17 @@ export interface FileRouteTypes {
     | '/_authenticated/agents/$agentId'
     | '/_authenticated/security/api-keys'
     | '/_authenticated/security/attempts'
+    | '/api/public/hub/dispatch'
+    | '/api/public/hub/heartbeat'
+    | '/api/public/hub/ingest'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicHubDispatchRoute: typeof ApiPublicHubDispatchRoute
+  ApiPublicHubHeartbeatRoute: typeof ApiPublicHubHeartbeatRoute
+  ApiPublicHubIngestRoute: typeof ApiPublicHubIngestRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -322,6 +385,20 @@ declare module '@tanstack/react-router' {
       path: '/performance'
       fullPath: '/performance'
       preLoaderRoute: typeof AuthenticatedPerformanceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/inbox': {
+      id: '/_authenticated/inbox'
+      path: '/inbox'
+      fullPath: '/inbox'
+      preLoaderRoute: typeof AuthenticatedInboxRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/hub': {
+      id: '/_authenticated/hub'
+      path: '/hub'
+      fullPath: '/hub'
+      preLoaderRoute: typeof AuthenticatedHubRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/folders': {
@@ -394,6 +471,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAgentsAgentIdRouteImport
       parentRoute: typeof AuthenticatedAgentsRoute
     }
+    '/api/public/hub/ingest': {
+      id: '/api/public/hub/ingest'
+      path: '/api/public/hub/ingest'
+      fullPath: '/api/public/hub/ingest'
+      preLoaderRoute: typeof ApiPublicHubIngestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hub/heartbeat': {
+      id: '/api/public/hub/heartbeat'
+      path: '/api/public/hub/heartbeat'
+      fullPath: '/api/public/hub/heartbeat'
+      preLoaderRoute: typeof ApiPublicHubHeartbeatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hub/dispatch': {
+      id: '/api/public/hub/dispatch'
+      path: '/api/public/hub/dispatch'
+      fullPath: '/api/public/hub/dispatch'
+      preLoaderRoute: typeof ApiPublicHubDispatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -431,6 +529,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
   AuthenticatedDatabasesRoute: typeof AuthenticatedDatabasesRoute
   AuthenticatedFoldersRoute: typeof AuthenticatedFoldersRoute
+  AuthenticatedHubRoute: typeof AuthenticatedHubRoute
+  AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
   AuthenticatedPerformanceRoute: typeof AuthenticatedPerformanceRoute
   AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRouteWithChildren
   AuthenticatedServicesRoute: typeof AuthenticatedServicesRoute
@@ -448,6 +548,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClientsRoute: AuthenticatedClientsRoute,
   AuthenticatedDatabasesRoute: AuthenticatedDatabasesRoute,
   AuthenticatedFoldersRoute: AuthenticatedFoldersRoute,
+  AuthenticatedHubRoute: AuthenticatedHubRoute,
+  AuthenticatedInboxRoute: AuthenticatedInboxRoute,
   AuthenticatedPerformanceRoute: AuthenticatedPerformanceRoute,
   AuthenticatedSecurityRoute: AuthenticatedSecurityRouteWithChildren,
   AuthenticatedServicesRoute: AuthenticatedServicesRoute,
@@ -463,6 +565,9 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicHubDispatchRoute: ApiPublicHubDispatchRoute,
+  ApiPublicHubHeartbeatRoute: ApiPublicHubHeartbeatRoute,
+  ApiPublicHubIngestRoute: ApiPublicHubIngestRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

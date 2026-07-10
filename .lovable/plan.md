@@ -1,86 +1,123 @@
-# مراجعة شاملة + خطة الإنجاز النهائي
 
-## الوضع الحالي (بعد كل الطلبات السابقة)
+# خطة: تحويل الموقع إلى "قلب" مجموعة HN
 
-**الواجهة (كامل ✅):** 16 صفحة جاهزة — الرئيسية، المواقع، قواعد البيانات، الأداء، التخزين، المجلدات، الحماية (+attempts +api-keys)، الوكلاء (+تفاصيل)، AI Command، الإعدادات، النسخ الاحتياطي، سجل التعديلات، شبكة الخدمات.
+الهدف: يصبح هذا الموقع مركز قيادة (Command Hub) يتحكم بمجموعة مواقع HN، يرسل ويستقبل منها، يوزع المهام على الوكلاء، ويعرض حالة كل شيء لحظياً.
 
-**قاعدة البيانات (موجود جزئياً):** 10 جداول — `sites`, `databases_registry`, `backups`, `storage_folders`, `security_events`, `notifications`, `activity_log`, `agents_catalog`, `agent_sessions`, `agent_tasks` — كلها بسياسات `USING (true)` مفتوحة.
-
-**ناقص كلياً ❌:**
-- لا يوجد **نظام دخول** (auth) للمالك.
-- لا يوجد **جدول أدوار** (owner/admin/agent) — كل الجداول مفتوحة للعامة.
-- لا يوجد **جدول عملاء** (clients) ولا ربط بينهم وبين المواقع.
-- كل الصفحات تقرأ من `src/lib/mock-data.ts` بدل قاعدة البيانات الفعلية.
-- لا يوجد جداول `services`, `service_dependencies`, `service_call_logs`, `api_keys`, `audit_log`.
+المكونات الحالية: كتالوج وكلاء + جدول مواقع + ربط وكيل↔موقع + بريد لكل موقع + HUD مختبر.
+الفجوات: لا يوجد ناقل رسائل فعلي، لا Webhooks، لا مفاتيح API لكل موقع، لا صندوق وارد موحد، لا صحة لحظية، لا سجل تنفيذ للأوامر.
 
 ---
 
-## خطة الإنجاز (3 مراحل — تُنفَّذ متتالية دون توقف)
+## 1) ناقل الأحداث الموحد (Event Bus)
 
-### المرحلة 1 — قاعدة البيانات + المصادقة + الأدوار
+جدول `hub_events` مركزي يستقبل ويصدر:
+- `direction`: inbound (من موقع إلى الهب) / outbound (من الهب إلى موقع)
+- `site_id`, `agent_id` (اختياري), `type` (order, alert, sync, mail, task, heartbeat...), `payload jsonb`, `status` (queued/processing/delivered/failed), `attempts`, `error`, `created_at`, `delivered_at`
+- Realtime مُفعّل → لوحة الأحداث تتحدث لحظياً
 
-**Migration واحدة تُنشئ:**
+## 2) واجهة استقبال عامة (Ingress)
+
+مسار `/api/public/hub/ingest` (server route):
+- يستقبل POST من كل موقع بمفتاح API + توقيع HMAC
+- يتحقق من المفتاح ويُدرج الحدث في `hub_events` كـ inbound
+- يعيد `event_id` للمصدر
+
+## 3) موزّع الأوامر (Dispatcher)
+
+مسار `/api/public/hub/dispatch` مجدول عبر pg_cron كل دقيقة:
+- يسحب الأحداث outbound بحالة queued
+- يرسلها إلى `site.webhook_url` مع توقيع HMAC
+- يحدث الحالة delivered/failed مع محاولات retry تصاعدية
+
+## 4) مفاتيح API + أسرار HMAC لكل موقع
+
+توسيع جدول `sites`:
+- `api_key` (مولّد تلقائياً، يُعرض مرة واحدة)
+- `webhook_secret` (لتوقيع الطلبات الصادرة)
+- `webhook_url` (endpoint الموقع لاستقبال أوامر الهب)
+- `last_heartbeat_at`, `health` (online/degraded/offline يُحسب من آخر نبضة)
+
+## 5) صندوق وارد موحد للبريد
+
+صفحة `/inbox`: كل الرسائل الواردة عبر عناوين مواقع المجموعة في مكان واحد
+- جدول `mail_messages` (site_id, from, to, subject, body, direction, read_at)
+- زر "رد" يرسل عبر بريد الموقع المستقبِل
+
+## 6) لوحة "قلب المجموعة" (Hub Overview)
+
+صفحة `/hub` جديدة كصفحة رئيسية:
+- خريطة/شبكة مرئية للمواقع مع خط نابض لكل موقع نشط
+- عدّاد أحداث/دقيقة (in/out)
+- آخر 20 حدث Live Stream
+- حالة كل موقع (heartbeat < 60s = online)
+
+## 7) موزّع المهام على الوكلاء
+
+عند وصول حدث inbound من نوع `task`:
+- يبحث عن وكلاء نشطين ومربوطين بذلك الموقع
+- يُنشئ سجلاً في `agent_tasks` ويعيّنه للوكيل الأنسب (حسب role)
+- عند اكتمال المهمة يُصدر حدثاً outbound للموقع الأصلي
+
+## 8) مراقبة الصحة (Heartbeat)
+
+- كل موقع يرسل `POST /api/public/hub/heartbeat` كل 30 ثانية
+- عمود `sites.last_heartbeat_at` يُحدَّث
+- View يحسب الحالة الحية → HUD العلوي يعرض "MESH: 12/15 ONLINE"
+
+## 9) سجل قابل للتدقيق
+
+كل حدث ودخول ومهمة يُسجَّل في `audit_log` مع actor/target للتحقيق لاحقاً.
+
+## 10) واجهة إعدادات التكامل لكل موقع
+
+في صفحة `/sites` → زر "تكامل" لكل موقع يفتح:
+- عرض api_key (مع Copy)
+- تدوير المفتاح
+- إدخال webhook_url
+- زر "اختبار الاتصال" يرسل حدث ping ويعرض النتيجة
+
+---
+
+## البنية التقنية
 
 ```text
-public.profiles          (id → auth.users, display_name, avatar_url, phone)
-public.app_role          ENUM ('owner','admin','agent','viewer')
-public.user_roles        (user_id, role) + has_role() security definer
-public.clients           (id, name, email, phone, company, status, notes)
-public.services          (site_id, name, endpoint_url, health, version, rate_limit, is_public)
-public.service_dependencies  (consumer_site_id, provider_service_id)
-public.service_call_logs (provider_service_id, endpoint, response_code, response_time_ms, status)
-public.api_keys          (label, prefix, hashed_secret, scopes[], active, created_by)
-public.audit_log         (actor_id, action, target, details, ip, created_at)
-public.attack_attempts   (ip, country, kind, target, blocked)
+       ┌─────────────────────────────────┐
+       │      HN HUB (هذا الموقع)         │
+       │                                 │
+  ┌────┤  /api/public/hub/ingest  ◀──────┼── مواقع HN
+  │    │  /api/public/hub/heartbeat ◀────┼── (POST + HMAC)
+  │    │                                 │
+  │    │  hub_events (Realtime)          │
+  │    │  ├─ Dispatcher (pg_cron/1m)     │
+  │    │  ├─ Agent Router                │
+  │    │  └─ Mail Aggregator             │
+  │    │                                 │
+  │    │  /api/public/hub/dispatch ──────┼─▶ webhook_url لكل موقع
+  │    └─────────────────────────────────┘
+  │
+  └─ لوحات: /hub /inbox /agents /sites /events
 ```
 
-- إضافة `client_id` إلى `sites` (ربط الموقع بعميله).
-- إحكام RLS على **كل** الجداول العشرة القديمة + الجديدة:
-  - `owner`/`admin` → صلاحية كاملة.
-  - `agent` → قراءة + كتابة على السجلات فقط.
-  - `viewer` → قراءة فقط.
-- Trigger `handle_new_user` يُنشئ profile + role تلقائياً.
-- أول مستخدم يُسجّل يحصل على دور `owner` تلقائياً.
-- كل جدول جديد يحصل على GRANT statements صحيحة.
+## الجداول الجديدة
 
-**نظام الدخول:**
-- تفعيل Email/Password + Google في Lovable Cloud.
-- صفحة `/auth` عامة (تبويبان: دخول / تسجيل).
-- طبقة `_authenticated/route.tsx` (يديرها التكامل) تحمي كل الصفحات ما عدا `/auth`.
-- نقل كل الصفحات الحالية تحت `_authenticated/`.
-- زر تسجيل خروج + قائمة مستخدم في `TopBar`.
+- `hub_events` (ناقل الأحداث + Realtime)
+- `mail_messages` (البريد الموحد)
+- توسيع `sites` بـ: api_key, webhook_secret, webhook_url, last_heartbeat_at
 
-### المرحلة 2 — ربط الواجهة بالقاعدة الحقيقية
+## الأمن
 
-- إنشاء `src/lib/data.functions.ts` — server functions محمية بـ `requireSupabaseAuth` لكل قراءة/كتابة (sites, clients, databases, backups, folders, services, agents, audit, security).
-- استبدال `mock-data.ts` بـ `useSuspenseQuery` + loaders في كل صفحة.
-- إبقاء نفس التصميم والـ UX بالحرف — فقط تبديل مصدر البيانات.
-- إضافة عمليات CRUD حقيقية (إضافة موقع، تعديل، حذف، تشغيل نسخة احتياطية، إبطال مفتاح، حظر IP…).
-- كل عملية تكتب سطراً في `audit_log` تلقائياً عبر trigger.
+- كل الجداول RLS مقيّدة لـ staff فقط
+- مسارات `/api/public/hub/*` تتحقق من `x-api-key` + توقيع `x-signature` (HMAC-SHA256)
+- المفاتيح تُخزَّن كـ hash؛ تُعرض القيمة الخام مرة واحدة عند الإنشاء
 
-### المرحلة 3 — صفحة "إدارة العملاء" + Seed + إصلاحات
+## ترتيب التنفيذ المقترح
 
-- صفحة جديدة `/_authenticated/clients` (سايدبار جديد): جدول عملاء + بحث + إضافة/تعديل/حذف + عدّاد المواقع لكل عميل.
-- ربط `/sites` بجدول العملاء (فلترة حسب العميل، إسناد موقع لعميل).
-- Seed script (migration ثانية) تعبّئ ~15 عميل و30 موقع تجريبي و10 خدمات لكي تكون اللوحة "حية" منذ أول دخول.
-- إصلاح خطأ hydration في `ActivityFeed` (تحويل `toLocaleString` إلى `useEffect` بعد mount).
-- تحديث `head()` في `__root.tsx` بعنوان ووصف حقيقيين للمنصة.
+1. توسيع sites + جدول hub_events + سياسات + Realtime
+2. مسارات ingest/heartbeat/dispatch
+3. صفحة /hub الرئيسية + Live Stream
+4. تكامل الوكلاء (توجيه المهام)
+5. البريد الموحد /inbox
+6. واجهة الإعدادات لكل موقع + اختبار الاتصال
+7. pg_cron للموزع
 
----
-
-## القرارات التقنية (مُتخذة تلقائياً حسب البست براكتس)
-
-- **الأدوار:** جدول منفصل `user_roles` + `has_role()` security definer (يمنع privilege escalation و infinite recursion).
-- **الخادم:** كل عمليات القراءة/الكتابة عبر `createServerFn` + `requireSupabaseAuth` (لا queries مباشرة من المتصفح للجداول الحساسة).
-- **OAuth:** Google عبر `lovable.auth.signInWithOAuth` (المسار المُوصى به).
-- **التصميم:** يبقى كما هو — نفس ثيم النيون، RTL، Cairo/Tajawal.
-- **صلاحيات:** أول مستخدم = owner، الباقي = viewer افتراضياً (owner يرقّيهم من `/settings`).
-
----
-
-## ما لن يُبنى (يحتاج سيرفر خارجي)
-Python Orchestrator، Rust Engine، Docker-in-Docker، Prometheus/Grafana، Cloudflare API، JWT SSO الفعلي بين نطاقات مختلفة — هذه بنية VPS منفصلة، والواجهة هنا ستستدعيها لاحقاً عبر REST من `services` table (المكان جاهز).
-
----
-
-**بعد الموافقة سأنفّذ المراحل الثلاث دفعة واحدة، ابتداءً بالـ migration ثم Auth ثم ربط الصفحات، دون توقف بينها.**
+هل نبدأ بالكامل، أم أُقسّمها لمراحل نُنفّذها واحدة تلو الأخرى؟
