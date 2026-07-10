@@ -124,13 +124,34 @@ export const listClients = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const [clientsRes, sitesRes] = await Promise.all([
       context.supabase.from("clients").select("*").order("created_at", { ascending: false }),
-      context.supabase.from("sites").select("id, client_id"),
+      context.supabase.from("sites").select("id, client_id, status, users_count, db_size_gb, storage_gb, activity_rate, integration_status, last_heartbeat_at"),
     ]);
     const sites = sitesRes.data ?? [];
-    return (clientsRes.data ?? []).map((c) => ({
-      ...c,
-      sites_count: sites.filter((s: any) => s.client_id === c.id).length,
-    }));
+    return (clientsRes.data ?? []).map((c) => {
+      const mine = sites.filter((s: any) => s.client_id === c.id);
+      const online = mine.filter((s: any) => s.status === "online").length;
+      const connected = mine.filter((s: any) => s.integration_status === "connected").length;
+      const users_total = mine.reduce((a: number, s: any) => a + (s.users_count ?? 0), 0);
+      const db_total = mine.reduce((a: number, s: any) => a + Number(s.db_size_gb ?? 0), 0);
+      const storage_total = mine.reduce((a: number, s: any) => a + Number(s.storage_gb ?? 0), 0);
+      const avg_activity = mine.length ? mine.reduce((a: number, s: any) => a + Number(s.activity_rate ?? 0), 0) / mine.length : 0;
+      const last_seen = mine.reduce((acc: string | null, s: any) => {
+        if (!s.last_heartbeat_at) return acc;
+        if (!acc || s.last_heartbeat_at > acc) return s.last_heartbeat_at;
+        return acc;
+      }, null as string | null);
+      return {
+        ...c,
+        sites_count: mine.length,
+        online_count: online,
+        connected_count: connected,
+        users_total,
+        db_total: Math.round(db_total * 100) / 100,
+        storage_total: Math.round(storage_total * 100) / 100,
+        avg_activity: Math.round(avg_activity),
+        last_seen,
+      };
+    });
   });
 
 export const upsertClient = createServerFn({ method: "POST" })
