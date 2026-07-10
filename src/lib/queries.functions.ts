@@ -746,11 +746,67 @@ export const addExtraAgentToSiteLink = createServerFn({ method: "POST" })
   });
 
 // ---------- AI Models catalog ----------
+// ============ AI PROVIDERS ============
+
+export const listAiProviders = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("ai_providers" as any).select("*").order("code", { ascending: true });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as any[];
+  });
+
+export const upsertAiProvider = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: {
+    id?: string; code: string; name: string; base_url?: string | null;
+    api_key_secret_name: string; is_enabled?: boolean;
+  }) => d)
+  .handler(async ({ data, context }) => {
+    const payload: any = {
+      code: data.code, name: data.name, base_url: data.base_url ?? null,
+      api_key_secret_name: data.api_key_secret_name,
+      is_enabled: data.is_enabled ?? true,
+    };
+    if (data.id) {
+      const { error } = await context.supabase.from("ai_providers" as any).update(payload).eq("id", data.id);
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await context.supabase.from("ai_providers" as any).insert(payload);
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true };
+  });
+
+export const toggleAiProvider = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; is_enabled: boolean }) => d)
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("ai_providers" as any).update({ is_enabled: data.is_enabled }).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteAiProvider = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("ai_providers" as any).delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// ============ AI MODELS ============
+
 export const listAiModels = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
-      .from("ai_models" as any).select("*").order("created_at", { ascending: false });
+      .from("ai_models" as any)
+      .select("*, provider:ai_providers(id,code,name,api_key_secret_name,is_enabled)")
+      .order("priority", { ascending: true });
     if (error) throw new Error(error.message);
     return (data ?? []) as any[];
   });
@@ -759,34 +815,49 @@ export const upsertAiModel = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: {
     id?: string;
-    name: string;
-    provider: string;
-    source?: string | null;
+    provider_id: string;
     model_id: string;
-    api_key_secret?: string | null;
+    gateway_code?: string | null;
+    display_name: string;
+    description?: string | null;
+    category?: string;
+    modalities?: string[];
+    caps?: Record<string, any>;
+    context_window?: number | null;
+    max_output_tokens?: number | null;
+    input_price_per_million?: number | null;
+    output_price_per_million?: number | null;
     role?: string | null;
     task?: string | null;
-    capabilities?: string[];
     rules?: string | null;
     status?: string;
     is_enabled?: boolean;
     is_default?: boolean;
+    priority?: number;
     notes?: string | null;
   }) => d)
   .handler(async ({ data, context }) => {
     const payload: any = {
-      name: data.name,
-      provider: data.provider,
-      source: data.source ?? null,
+      provider_id: data.provider_id,
       model_id: data.model_id,
-      api_key_secret: data.api_key_secret ?? null,
+      gateway_code: data.gateway_code ?? null,
+      name: data.display_name,
+      display_name: data.display_name,
+      description: data.description ?? null,
+      category: data.category ?? "chat",
+      modalities: data.modalities ?? ["text"],
+      caps: data.caps ?? {},
+      context_window: data.context_window ?? null,
+      max_output_tokens: data.max_output_tokens ?? null,
+      input_price_per_million: data.input_price_per_million ?? null,
+      output_price_per_million: data.output_price_per_million ?? null,
       role: data.role ?? null,
       task: data.task ?? null,
-      capabilities: data.capabilities ?? [],
       rules: data.rules ?? null,
       status: data.status ?? "active",
       is_enabled: data.is_enabled ?? true,
       is_default: data.is_default ?? false,
+      priority: data.priority ?? 100,
       notes: data.notes ?? null,
     };
     if (data.id) {
@@ -817,3 +888,18 @@ export const deleteAiModel = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ============ AI USAGE ============
+
+export const listAiUsage = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("ai_usage_logs" as any)
+      .select("*, model:ai_models(display_name,gateway_code)")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+    return (data ?? []) as any[];
+  });
+
