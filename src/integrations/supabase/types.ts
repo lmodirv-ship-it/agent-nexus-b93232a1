@@ -723,10 +723,38 @@ export type Database = {
           },
         ]
       }
+      site_categories: {
+        Row: {
+          code_prefix: string
+          color: string
+          icon: string
+          id: number
+          name: string
+          target_count: number
+        }
+        Insert: {
+          code_prefix: string
+          color: string
+          icon: string
+          id: number
+          name: string
+          target_count?: number
+        }
+        Update: {
+          code_prefix?: string
+          color?: string
+          icon?: string
+          id?: number
+          name?: string
+          target_count?: number
+        }
+        Relationships: []
+      }
       sites: {
         Row: {
           activity_rate: number
           api_key_hash: string | null
+          category_id: number | null
           client_id: string | null
           created_at: string | null
           db_name: string | null
@@ -752,6 +780,7 @@ export type Database = {
         Insert: {
           activity_rate?: number
           api_key_hash?: string | null
+          category_id?: number | null
           client_id?: string | null
           created_at?: string | null
           db_name?: string | null
@@ -777,6 +806,7 @@ export type Database = {
         Update: {
           activity_rate?: number
           api_key_hash?: string | null
+          category_id?: number | null
           client_id?: string | null
           created_at?: string | null
           db_name?: string | null
@@ -800,6 +830,13 @@ export type Database = {
           webhook_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "sites_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "site_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sites_client_id_fkey"
             columns: ["client_id"]
