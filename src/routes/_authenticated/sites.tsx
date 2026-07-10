@@ -90,6 +90,16 @@ function SitesPage() {
     { key: "code", header: "المعرف", cell: (s) => (
       <div className="flex items-center gap-1 text-[11px] font-mono text-cyan-neon"><Hash className="w-3 h-3" />{s.site_code ?? "—"}</div>
     )},
+    { key: "category", header: "التصنيف", cell: (s) => {
+      const c = s.site_categories;
+      if (!c) return <span className="text-xs text-muted-foreground">—</span>;
+      return (
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border inline-flex items-center gap-1"
+          style={{ color: c.color, borderColor: `${c.color}55`, background: `${c.color}15` }}>
+          <Tag className="w-2.5 h-2.5" />{c.name}
+        </span>
+      );
+    }},
     { key: "site", header: "الموقع", cell: (s) => {
       const hex = s.icon_color ?? "#22d3ee";
       return (
