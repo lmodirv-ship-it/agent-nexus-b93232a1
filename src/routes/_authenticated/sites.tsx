@@ -126,6 +126,9 @@ function SitesPage() {
       </div>
 
       <DataTable rows={filtered} columns={columns} />
+      {integrationSite && (
+        <SiteIntegrationModal site={integrationSite} onClose={() => setIntegrationSite(null)} />
+      )}
     </div>
   );
 }
