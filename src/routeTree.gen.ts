@@ -32,6 +32,7 @@ import { Route as AuthenticatedAgentLinkRouteImport } from './routes/_authentica
 import { Route as AuthenticatedSecurityAttemptsRouteImport } from './routes/_authenticated/security.attempts'
 import { Route as AuthenticatedSecurityApiKeysRouteImport } from './routes/_authenticated/security.api-keys'
 import { Route as AuthenticatedAgentsAgentIdRouteImport } from './routes/_authenticated/agents.$agentId'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as ApiPublicHubIngestRouteImport } from './routes/api/public/hub/ingest'
 import { Route as ApiPublicHubHeartbeatRouteImport } from './routes/api/public/hub/heartbeat'
 import { Route as ApiPublicHubDispatchRouteImport } from './routes/api/public/hub/dispatch'
@@ -154,6 +155,11 @@ const AuthenticatedAgentsAgentIdRoute =
     path: '/$agentId',
     getParentRoute: () => AuthenticatedAgentsRoute,
   } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHubIngestRoute = ApiPublicHubIngestRouteImport.update({
   id: '/api/public/hub/ingest',
   path: '/api/public/hub/ingest',
@@ -190,6 +196,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/sites': typeof AuthenticatedSitesRoute
   '/storage': typeof AuthenticatedStorageRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/security/api-keys': typeof AuthenticatedSecurityApiKeysRoute
   '/security/attempts': typeof AuthenticatedSecurityAttemptsRoute
@@ -217,6 +224,7 @@ export interface FileRoutesByTo {
   '/sites': typeof AuthenticatedSitesRoute
   '/storage': typeof AuthenticatedStorageRoute
   '/': typeof AuthenticatedIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/security/api-keys': typeof AuthenticatedSecurityApiKeysRoute
   '/security/attempts': typeof AuthenticatedSecurityAttemptsRoute
@@ -246,6 +254,7 @@ export interface FileRoutesById {
   '/_authenticated/sites': typeof AuthenticatedSitesRoute
   '/_authenticated/storage': typeof AuthenticatedStorageRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/_authenticated/security/api-keys': typeof AuthenticatedSecurityApiKeysRoute
   '/_authenticated/security/attempts': typeof AuthenticatedSecurityAttemptsRoute
@@ -275,6 +284,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sites'
     | '/storage'
+    | '/.lovable/oauth/consent'
     | '/agents/$agentId'
     | '/security/api-keys'
     | '/security/attempts'
@@ -302,6 +312,7 @@ export interface FileRouteTypes {
     | '/sites'
     | '/storage'
     | '/'
+    | '/.lovable/oauth/consent'
     | '/agents/$agentId'
     | '/security/api-keys'
     | '/security/attempts'
@@ -330,6 +341,7 @@ export interface FileRouteTypes {
     | '/_authenticated/sites'
     | '/_authenticated/storage'
     | '/_authenticated/'
+    | '/.lovable/oauth/consent'
     | '/_authenticated/agents/$agentId'
     | '/_authenticated/security/api-keys'
     | '/_authenticated/security/attempts'
@@ -341,6 +353,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   ApiPublicHubDispatchRoute: typeof ApiPublicHubDispatchRoute
   ApiPublicHubHeartbeatRoute: typeof ApiPublicHubHeartbeatRoute
   ApiPublicHubIngestRoute: typeof ApiPublicHubIngestRoute
@@ -509,6 +522,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAgentsAgentIdRouteImport
       parentRoute: typeof AuthenticatedAgentsRoute
     }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hub/ingest': {
       id: '/api/public/hub/ingest'
       path: '/api/public/hub/ingest'
@@ -607,6 +627,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   ApiPublicHubDispatchRoute: ApiPublicHubDispatchRoute,
   ApiPublicHubHeartbeatRoute: ApiPublicHubHeartbeatRoute,
   ApiPublicHubIngestRoute: ApiPublicHubIngestRoute,
