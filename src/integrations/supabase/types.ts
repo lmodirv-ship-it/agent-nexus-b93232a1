@@ -662,6 +662,175 @@ export type Database = {
           },
         ]
       }
+      hn_apps: {
+        Row: {
+          app_code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          metadata: Json
+          name: string
+          site_id: string | null
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          app_code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          name: string
+          site_id?: string | null
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          app_code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          name?: string
+          site_id?: string | null
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hn_apps_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hn_roles: {
+        Row: {
+          access_level: number
+          code: string
+          created_at: string
+          default_dashboard: string
+          description: string | null
+          id: string
+          name_ar: string
+          updated_at: string
+        }
+        Insert: {
+          access_level?: number
+          code: string
+          created_at?: string
+          default_dashboard?: string
+          description?: string | null
+          id?: string
+          name_ar: string
+          updated_at?: string
+        }
+        Update: {
+          access_level?: number
+          code?: string
+          created_at?: string
+          default_dashboard?: string
+          description?: string | null
+          id?: string
+          name_ar?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      hn_user_roles_apps: {
+        Row: {
+          app_id: string | null
+          created_at: string
+          granted_by: string | null
+          id: string
+          is_active: boolean
+          role_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          app_id?: string | null
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean
+          role_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          app_id?: string | null
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean
+          role_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hn_user_roles_apps_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "hn_apps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hn_user_roles_apps_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "hn_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hn_users: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          last_login_at: string | null
+          origin_app_id: string | null
+          origin_domain: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          last_login_at?: string | null
+          origin_app_id?: string | null
+          origin_domain?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          last_login_at?: string | null
+          origin_app_id?: string | null
+          origin_domain?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hn_users_origin_app_id_fkey"
+            columns: ["origin_app_id"]
+            isOneToOne: false
+            referencedRelation: "hn_apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hub_events: {
         Row: {
           agent_id: string | null
@@ -1300,6 +1469,10 @@ export type Database = {
     }
     Functions: {
       _site_code_prefix: { Args: { color: string }; Returns: string }
+      hn_resolve_dashboard: {
+        Args: { _app_code?: string; _user_id: string }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "owner" | "admin" | "agent" | "viewer" | "client" | "visitor"
