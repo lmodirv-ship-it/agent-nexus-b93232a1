@@ -74,7 +74,13 @@ const groups = [
 ];
 
 const clientNav = [
-  { label: "بوابة العميل", items: [{ to: "/portal", label: "لوحتي", icon: Briefcase, badge: null }] },
+  {
+    label: "بوابة العميل",
+    items: [
+      { to: "/user/dashboard", label: "لوحتي", icon: LayoutDashboard, badge: null },
+      { to: "/portal", label: "مواقعي", icon: Briefcase, badge: null },
+    ],
+  },
 ];
 
 export function Sidebar() {
