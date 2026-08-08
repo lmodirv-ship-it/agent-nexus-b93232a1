@@ -35,8 +35,10 @@ import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedAgentLinkRouteImport } from './routes/_authenticated/agent-link'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
+import { Route as AuthenticatedUserDashboardRouteImport } from './routes/_authenticated/user/dashboard'
 import { Route as AuthenticatedSecurityAttemptsRouteImport } from './routes/_authenticated/security.attempts'
 import { Route as AuthenticatedSecurityApiKeysRouteImport } from './routes/_authenticated/security.api-keys'
+import { Route as AuthenticatedOwnerDashboardRouteImport } from './routes/_authenticated/owner/dashboard'
 import { Route as AuthenticatedAgentsAgentIdRouteImport } from './routes/_authenticated/agents.$agentId'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
@@ -176,6 +178,12 @@ const Char91DotmcpChar93ListToolsRoute =
     path: '/.mcp/list-tools',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedUserDashboardRoute =
+  AuthenticatedUserDashboardRouteImport.update({
+    id: '/user/dashboard',
+    path: '/user/dashboard',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSecurityAttemptsRoute =
   AuthenticatedSecurityAttemptsRouteImport.update({
     id: '/attempts',
@@ -187,6 +195,12 @@ const AuthenticatedSecurityApiKeysRoute =
     id: '/api-keys',
     path: '/api-keys',
     getParentRoute: () => AuthenticatedSecurityRoute,
+  } as any)
+const AuthenticatedOwnerDashboardRoute =
+  AuthenticatedOwnerDashboardRouteImport.update({
+    id: '/owner/dashboard',
+    path: '/owner/dashboard',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAgentsAgentIdRoute =
   AuthenticatedAgentsAgentIdRouteImport.update({
@@ -250,8 +264,10 @@ export interface FileRoutesByFullPath {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
+  '/owner/dashboard': typeof AuthenticatedOwnerDashboardRoute
   '/security/api-keys': typeof AuthenticatedSecurityApiKeysRoute
   '/security/attempts': typeof AuthenticatedSecurityAttemptsRoute
+  '/user/dashboard': typeof AuthenticatedUserDashboardRoute
   '/api/public/hub/dispatch': typeof ApiPublicHubDispatchRoute
   '/api/public/hub/heartbeat': typeof ApiPublicHubHeartbeatRoute
   '/api/public/hub/ingest': typeof ApiPublicHubIngestRoute
@@ -285,8 +301,10 @@ export interface FileRoutesByTo {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
+  '/owner/dashboard': typeof AuthenticatedOwnerDashboardRoute
   '/security/api-keys': typeof AuthenticatedSecurityApiKeysRoute
   '/security/attempts': typeof AuthenticatedSecurityAttemptsRoute
+  '/user/dashboard': typeof AuthenticatedUserDashboardRoute
   '/api/public/hub/dispatch': typeof ApiPublicHubDispatchRoute
   '/api/public/hub/heartbeat': typeof ApiPublicHubHeartbeatRoute
   '/api/public/hub/ingest': typeof ApiPublicHubIngestRoute
@@ -322,8 +340,10 @@ export interface FileRoutesById {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
+  '/_authenticated/owner/dashboard': typeof AuthenticatedOwnerDashboardRoute
   '/_authenticated/security/api-keys': typeof AuthenticatedSecurityApiKeysRoute
   '/_authenticated/security/attempts': typeof AuthenticatedSecurityAttemptsRoute
+  '/_authenticated/user/dashboard': typeof AuthenticatedUserDashboardRoute
   '/api/public/hub/dispatch': typeof ApiPublicHubDispatchRoute
   '/api/public/hub/heartbeat': typeof ApiPublicHubHeartbeatRoute
   '/api/public/hub/ingest': typeof ApiPublicHubIngestRoute
@@ -359,8 +379,10 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/agents/$agentId'
+    | '/owner/dashboard'
     | '/security/api-keys'
     | '/security/attempts'
+    | '/user/dashboard'
     | '/api/public/hub/dispatch'
     | '/api/public/hub/heartbeat'
     | '/api/public/hub/ingest'
@@ -394,8 +416,10 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/agents/$agentId'
+    | '/owner/dashboard'
     | '/security/api-keys'
     | '/security/attempts'
+    | '/user/dashboard'
     | '/api/public/hub/dispatch'
     | '/api/public/hub/heartbeat'
     | '/api/public/hub/ingest'
@@ -430,8 +454,10 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/agents/$agentId'
+    | '/_authenticated/owner/dashboard'
     | '/_authenticated/security/api-keys'
     | '/_authenticated/security/attempts'
+    | '/_authenticated/user/dashboard'
     | '/api/public/hub/dispatch'
     | '/api/public/hub/heartbeat'
     | '/api/public/hub/ingest'
@@ -634,6 +660,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/user/dashboard': {
+      id: '/_authenticated/user/dashboard'
+      path: '/user/dashboard'
+      fullPath: '/user/dashboard'
+      preLoaderRoute: typeof AuthenticatedUserDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/security/attempts': {
       id: '/_authenticated/security/attempts'
       path: '/attempts'
@@ -647,6 +680,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/security/api-keys'
       preLoaderRoute: typeof AuthenticatedSecurityApiKeysRouteImport
       parentRoute: typeof AuthenticatedSecurityRoute
+    }
+    '/_authenticated/owner/dashboard': {
+      id: '/_authenticated/owner/dashboard'
+      path: '/owner/dashboard'
+      fullPath: '/owner/dashboard'
+      preLoaderRoute: typeof AuthenticatedOwnerDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/agents/$agentId': {
       id: '/_authenticated/agents/$agentId'
@@ -741,6 +781,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedStorageRoute: typeof AuthenticatedStorageRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedOwnerDashboardRoute: typeof AuthenticatedOwnerDashboardRoute
+  AuthenticatedUserDashboardRoute: typeof AuthenticatedUserDashboardRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -765,6 +807,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedStorageRoute: AuthenticatedStorageRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedOwnerDashboardRoute: AuthenticatedOwnerDashboardRoute,
+  AuthenticatedUserDashboardRoute: AuthenticatedUserDashboardRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
