@@ -1469,10 +1469,7 @@ export type Database = {
     }
     Functions: {
       _site_code_prefix: { Args: { color: string }; Returns: string }
-      hn_resolve_dashboard: {
-        Args: { _app_code?: string; _user_id: string }
-        Returns: string
-      }
+      hn_my_dashboard: { Args: { _app_code?: string }; Returns: string }
     }
     Enums: {
       app_role: "owner" | "admin" | "agent" | "viewer" | "client" | "visitor"
